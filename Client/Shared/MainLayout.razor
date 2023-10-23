@@ -1,0 +1,60 @@
+﻿@inherits LayoutComponentBase
+
+<MudThemeProvider/>
+<MudDialogProvider/>
+<MudSnackbarProvider/>
+
+<MudLayout>
+    <MudAppBar Elevation="0" Color="Color.Primary">
+        @* Add menu icon *@
+        <MudIconButton Icon="@Icons.Material.Filled.Menu" Style=@($"color:{Theme.PaletteDark.White}") Edge="Edge.Start" OnClick="@ToggleDrawer"/>
+
+        <h2>Endava Tech Course Bank App | </h2>
+        <MudButton Href="/" Variant="Variant.Text" Style=@($"color:{Theme.PaletteDark.White}") Class="ml-4">Pagina Principala</MudButton>
+        <MudSpacer/>
+        <MudAvatar Color="Color.Tertiary">D</MudAvatar>
+    </MudAppBar>
+
+    @* Add side bar *@
+    <MudDrawer @bind-Open="open" Breakpoint="@breakpoint">
+        <MudDrawerHeader>
+            <MudIconButton Href="/" Icon="@Icons.Custom.Brands.MudBlazor" Color="Color.Primary" Size="Size.Large"/>
+        </MudDrawerHeader>
+        <MudNavMenu>
+            <MudNavLink Match="NavLinkMatch.All">Profile</MudNavLink>
+            <MudNavLink Match="NavLinkMatch.All">Settings</MudNavLink>
+            <MudNavLink Match="NavLinkMatch.All">About</MudNavLink>
+            <MudDivider/>
+            <MudNavLink Match="NavLinkMatch.All">Log out</MudNavLink>
+        </MudNavMenu>
+    </MudDrawer>
+
+    <MudMainContent>
+        <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="my-8">
+            @Body
+            <MudScrollToTop>
+                <MudFab Color="Color.Tertiary" StartIcon="@Icons.Material.Filled.ArrowCircleUp"/>
+            </MudScrollToTop>
+        </MudContainer>
+    </MudMainContent>
+</MudLayout>
+
+
+@code {
+    bool open;
+    Breakpoint breakpoint = Breakpoint.Sm;
+
+    void ToggleDrawer()
+    {
+        open = !open;
+    }
+
+    private MudTheme Theme = new()
+    {
+        Palette = new PaletteLight()
+        {
+            Tertiary = Colors.DeepPurple.Darken4
+        },
+    };
+
+}
