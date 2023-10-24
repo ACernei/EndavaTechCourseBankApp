@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
-using EndavaTechCourseBankApp.Shared;
+using Endava.TechCourse.BankApp.Shared;
 
-namespace EndavaTechCourseBankApp.Server.Controllers;
+namespace Endava.TechCourse.BankApp.Server.Controllers;
 
 [ApiController]
 [Route("[controller]")]
