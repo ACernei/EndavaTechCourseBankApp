@@ -19,41 +19,48 @@ public class WalletsController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> CreateWallet([FromBody] WalletDto walletDto)
+    public async Task CreateWallet([FromBody] WalletDto walletDto)
     {
-        var currency = await this.context.Currencies.FirstOrDefaultAsync(x => x.Id.ToString() == walletDto.Currency.Id);
+        // searching by 'x.Id.ToString()'
+        // this works in prod, but fails in UnitTests (FirstOrDefault/Async also fails in UnitTests)
+        // var currency = await context.Currencies.FirstAsync(x => x.Id.ToString() == walletDto.Currency.Id);
+
+        // searching by 'x.Id' (after converting the request string to Guid)
+        // this works in prod, also in UnitTests
+        if (!Guid.TryParse(walletDto.Currency.Id, out var requestCurrencyId))
+            throw new InvalidOperationException($"Received invalid Id: {walletDto.Currency.Id}");
+        var currency = await context.Currencies.FirstAsync(x => x.Id == requestCurrencyId);
+
         var wallet = new Wallet
         {
             Type = walletDto.Type,
             Amount = walletDto.Amount,
-            Currency = currency,
+            Currency = currency
         };
 
         context.Wallets.Add(wallet);
         await context.SaveChangesAsync();
-
-        return Ok();
     }
 
     [HttpGet]
-    public IActionResult GetWallets()
+    public List<WalletDto> GetWallets()
     {
         var walletDtos = context.Wallets
             .Include(x => x.Currency)
             .Select(WalletDto.From)
             .ToList();
 
-        return Ok(walletDtos);
+        return walletDtos;
     }
 
     [HttpGet("{id}")]
-    public async Task<IActionResult> GetWalletById(Guid id)
+    public async Task<WalletDto> GetWalletById(Guid id)
     {
         var walletDomain = await context.Wallets
             .Include(x => x.Currency)
-            .FirstOrDefaultAsync(x => x.Id == id);
+            .FirstAsync(x => x.Id == id);
         var walletDto = WalletDto.From(walletDomain);
 
-        return Ok(walletDto);
+        return walletDto;
     }
 }

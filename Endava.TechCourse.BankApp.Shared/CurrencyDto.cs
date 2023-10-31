@@ -9,13 +9,19 @@ public class CurrencyDto
     public string Code { get; set; }
     public decimal ChangeRate { get; set; }
 
-    public static CurrencyDto From(Currency source) => new()
+    public static CurrencyDto From(Currency source)
     {
-        Id = source.Id.ToString(),
-        Name = source.Name,
-        Code = source.CurrencyCode,
-        ChangeRate = source.ChangeRate
-    };
+        return new CurrencyDto
+        {
+            Id = source.Id.ToString(),
+            Name = source.Name,
+            Code = source.Code,
+            ChangeRate = source.ChangeRate
+        };
+    }
 
-    public override string ToString() => Code;
+    public override string ToString()
+    {
+        return Code;
+    }
 }

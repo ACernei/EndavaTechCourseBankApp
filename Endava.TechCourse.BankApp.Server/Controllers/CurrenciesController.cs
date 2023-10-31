@@ -23,7 +23,7 @@ public class CurrenciesController : ControllerBase
         var currency = new Currency
         {
             Name = currencyDto.Name,
-            CurrencyCode = currencyDto.Code,
+            Code = currencyDto.Code,
             ChangeRate = currencyDto.ChangeRate
         };
 
