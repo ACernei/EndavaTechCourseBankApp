@@ -10,9 +10,7 @@
         <MudIconButton Icon="@Icons.Material.Filled.Menu" Style=@($"color:{Theme.PaletteDark.White}") Edge="Edge.Start" OnClick="@ToggleDrawer"/>
 
         <h2>Endava Tech Course Bank App | </h2>
-        <MudButton Href="/" Variant="Variant.Text" Style=@($"color:{Theme.PaletteDark.White}") Class="ml-4">Pagina Principala</MudButton>
-        <MudSpacer/>
-        <MudAvatar Color="Color.Tertiary">D</MudAvatar>
+        <MudButton Href="/wallets" Variant="Variant.Text" Style=@($"color:{Theme.PaletteDark.White}") Class="ml-4">Wallets</MudButton>
     </MudAppBar>
 
     @* Add side bar *@
@@ -42,19 +40,19 @@
 
 @code {
     bool open;
-    Breakpoint breakpoint = Breakpoint.Sm;
+    readonly Breakpoint breakpoint = Breakpoint.Sm;
 
     void ToggleDrawer()
     {
         open = !open;
     }
 
-    private MudTheme Theme = new()
+    private readonly MudTheme Theme = new()
     {
-        Palette = new PaletteLight()
+        Palette = new PaletteLight
         {
             Tertiary = Colors.DeepPurple.Darken4
-        },
+        }
     };
 
 }

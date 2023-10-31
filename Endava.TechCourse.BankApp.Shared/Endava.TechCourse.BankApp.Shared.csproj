@@ -2,7 +2,6 @@
 
     <PropertyGroup>
         <TargetFramework>net7.0</TargetFramework>
-        <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
     </PropertyGroup>
 
@@ -12,5 +11,15 @@
 
     <ItemGroup>
       <PackageReference Include="MudBlazor" Version="6.11.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Endava.TechCourse.BankApp.Domain\Endava.TechCourse.BankApp.Domain.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Reference Include="Microsoft.AspNetCore.Mvc.Core">
+        <HintPath>..\..\..\..\..\usr\share\dotnet\shared\Microsoft.AspNetCore.App\7.0.13\Microsoft.AspNetCore.Mvc.Core.dll</HintPath>
+      </Reference>
     </ItemGroup>
 </Project>

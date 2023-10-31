@@ -1,6 +1,10 @@
+using Endava.TechCourse.BankApp.Infrastructure;
+
 var builder = WebApplication.CreateBuilder(args);
+var configuration = builder.Configuration;
 
 // Add services to the container.
+builder.Services.AddInfrastructure(configuration);
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
