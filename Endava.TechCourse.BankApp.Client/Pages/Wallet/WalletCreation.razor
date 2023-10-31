@@ -1,0 +1,36 @@
+@page "/wallets/create-wallet"
+
+@inject NavigationManager NavigationManager
+@inject HttpClient HttpClient
+
+<PageTitle>Bank App</PageTitle>
+
+@if (wallet == null || currencies == null)
+{
+    <MudText>Loading...</MudText>
+}
+else
+{
+    <MudText>Wallet Details</MudText>
+    <EditForm Model="wallet" OnValidSubmit="CreateWallet">
+        <DataAnnotationsValidator/>
+        <MudCard>
+            <MudCardContent>
+                <MudTextField @bind-Value="wallet.Type" Label="Type" Required="true"/>
+                <MudTextField @bind-Value="wallet.Amount" Label="Amount" Required="true"/>
+                <MudSelect T="CurrencyDto" @bind-Value="wallet.Currency" Label="Currency" Clearable="true" Required="true">
+                    @foreach (var currency in currencies)
+                    {
+                        <MudSelectItem Value="@currency"/>
+                    }
+                </MudSelect>
+                <MudCardActions>
+                    <MudStack Row="true">
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" ButtonType="ButtonType.Submit">Create Wallet</MudButton>
+                        <MudButton Href="/wallets" Variant="Variant.Filled" Color="Color.Primary">Cancel</MudButton>
+                    </MudStack>
+                </MudCardActions>
+            </MudCardContent>
+        </MudCard>
+    </EditForm>
+}
