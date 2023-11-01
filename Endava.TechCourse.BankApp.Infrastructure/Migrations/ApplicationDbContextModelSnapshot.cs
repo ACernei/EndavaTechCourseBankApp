@@ -31,13 +31,16 @@ namespace Endava.TechCourse.BankApp.Infrastructure.Migrations
                     b.Property<decimal>("ChangeRate")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<string>("CurrencyCode")
+                    b.Property<string>("Code")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("TimeStamp")
+                        .HasColumnType("datetime2");
 
                     b.HasKey("Id");
 
@@ -57,10 +60,7 @@ namespace Endava.TechCourse.BankApp.Infrastructure.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("TimeStamp")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime")
-                        .HasColumnName("TimeStamp")
-                        .HasDefaultValueSql("GETDATE()");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("Type")
                         .IsRequired()

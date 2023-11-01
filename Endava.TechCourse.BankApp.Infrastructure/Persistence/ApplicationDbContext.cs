@@ -1,4 +1,3 @@
-using Endava.TechCourse.BankApp.Domain.Common;
 using Endava.TechCourse.BankApp.Domain.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -18,12 +17,11 @@ public class ApplicationDbContext : DbContext
         modelBuilder.Entity<Wallet>().HasKey(x => x.Id);
         modelBuilder.Entity<Currency>().HasKey(x => x.Id);
 
-        base.OnModelCreating(modelBuilder);
-
         modelBuilder.Entity<Wallet>()
-            .Property(e => e.TimeStamp)
-            .HasColumnName("TimeStamp")
-            .HasColumnType("datetime")
-            .HasDefaultValueSql("GETDATE()");
+            .Property(e => e.TimeStamp);
+        modelBuilder.Entity<Currency>()
+            .Property(e => e.TimeStamp);
+
+        base.OnModelCreating(modelBuilder);
     }
 }
