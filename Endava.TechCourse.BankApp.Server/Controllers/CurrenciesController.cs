@@ -1,6 +1,6 @@
-using Endava.TechCourse.BankApp.Domain.Models;
-using Endava.TechCourse.BankApp.Infrastructure.Persistence;
+using Endava.TechCourse.BankApp.Application.Commands.AddCurrency;
 using Endava.TechCourse.BankApp.Shared;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Endava.TechCourse.BankApp.Server.Controllers;
@@ -9,37 +9,33 @@ namespace Endava.TechCourse.BankApp.Server.Controllers;
 [ApiController]
 public class CurrenciesController : ControllerBase
 {
-    private readonly ApplicationDbContext context;
+    private readonly IMediator mediator;
 
-    public CurrenciesController(ApplicationDbContext context)
+    public CurrenciesController(IMediator mediator)
     {
-        ArgumentNullException.ThrowIfNull(context);
-        this.context = context;
+        ArgumentNullException.ThrowIfNull(mediator);
+
+        this.mediator = mediator;
     }
 
     [HttpPost]
-    public IActionResult CreateCurrency([FromBody] CurrencyDto currencyDto)
+    public async Task<IActionResult> AddCurrency([FromBody] CurrencyDto currencyDto)
     {
-        var currency = new Currency
+        var command = new AddCurrencyCommand
         {
             Name = currencyDto.Name,
             Code = currencyDto.Code,
             ChangeRate = currencyDto.ChangeRate
         };
 
-        context.Currencies.Add(currency);
-        context.SaveChanges();
+        var result = await mediator.Send(command);
 
-        return Ok();
+        return result.IsSuccessful ? Ok() : BadRequest(result.Error);
     }
 
     [HttpGet]
-    public IActionResult GetCurrencies()
+    public async Task<List<CurrencyDto>> GetCurrencies()
     {
-        var currencyDtos = context.Currencies
-            .Select(CurrencyDto.From)
-            .ToList();
-
-        return Ok(currencyDtos);
+        return new();
     }
 }

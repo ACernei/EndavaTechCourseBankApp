@@ -1,3 +1,4 @@
+using Endava.TechCourse.BankApp.Application.Queries.GetWallets;
 using Endava.TechCourse.BankApp.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -5,6 +6,12 @@ var configuration = builder.Configuration;
 
 // Add services to the container.
 builder.Services.AddInfrastructure(configuration);
+
+builder.Services.AddMediatR(config =>
+{
+    config.RegisterServicesFromAssemblies(typeof(Program).Assembly);
+    config.RegisterServicesFromAssemblies(typeof(GetWalletsQuery).Assembly);
+});
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
@@ -29,7 +36,6 @@ app.UseBlazorFrameworkFiles();
 app.UseStaticFiles();
 
 app.UseRouting();
-
 
 app.MapRazorPages();
 app.MapControllers();
