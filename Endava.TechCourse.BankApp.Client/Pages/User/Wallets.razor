@@ -1,0 +1,112 @@
+@page "/wallets"
+@layout UserLayout
+@inject HttpClient HttpClient
+
+<PageTitle>Endava .NET Tech Course</PageTitle>
+
+<MudGrid>
+    <MudItem md="12">
+        <MudText Typo="Typo.h4" GutterBottom="true">Portofele existente</MudText>
+    </MudItem>
+    @if (wallets is null || !wallets.Any())
+    {
+        <MudItem md="12">
+            <MudAlert Severity="Severity.Info">La moment nu aveti nici un portofel.</MudAlert>
+        </MudItem>
+    }
+    else
+    {
+        foreach (var wallet in wallets)
+        {
+            <MudItem md="3">
+                <MudCard>
+                    <MudCardHeader>
+                        <CardHeaderContent>
+                            <MudText Typo="Typo.h6">Portofel Digital</MudText>
+                        </CardHeaderContent>
+                        <CardHeaderActions>
+                            <MudIconButton Icon="@Icons.Material.Filled.Bookmark" Color="Color.Default"/>
+                        </CardHeaderActions>
+                    </MudCardHeader>
+                    <MudCardContent>
+                        <MudText>Balanta contului : @wallet.Amount</MudText>
+                        <MudText>Valuta - @wallet.Currency</MudText>
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
+        }
+    }
+    <MudItem md="12">
+        <MudText Typo="Typo.h5" GutterBottom="true">Creare portofel :</MudText>
+    </MudItem>
+    @if (currencies is null || !currencies.Any())
+    {
+        <MudAlert>Nu puteti crea un portofel nou deoarece nu exista valute disponibile</MudAlert>
+    }
+    else
+    {
+        <MudItem md="1" Class="d-flex align-center">
+            <MudText GutterBottom="true">Alege valuta :</MudText>
+        </MudItem>
+        <MudItem md="2">
+            <MudSelect T="string" @bind-Value="newWallet.Currency.Code" Label="Valuta" Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter">
+                @foreach (var currency in currencies)
+                {
+                    <MudSelectItem T="string" Value="currency.Code"/>
+                }
+            </MudSelect>
+        </MudItem>
+        <MudItem md="2">
+            <MudButton Class="mt-4" Variant="Variant.Filled" Color="Color.Primary" OnClick="AddWallet">Adauga</MudButton>
+        </MudItem>
+        <MudItem md="12">
+            @if (newWalletError != string.Empty)
+            {
+                <MudAlert>@newWalletError</MudAlert>
+            }
+        </MudItem>
+    }
+</MudGrid>
+
+
+@code {
+    private IEnumerable<WalletDto> wallets;
+    private IEnumerable<CurrencyDto> currencies;
+    private WalletDto newWallet = new();
+    private string newWalletError = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetWallets();
+        await GetCurrencies();
+        StateHasChanged();
+
+        await base.OnInitializedAsync();
+    }
+
+    public async Task GetWallets() => wallets = await this.HttpClient.GetFromJsonAsync<List<WalletDto>>("api/wallets");
+    public async Task GetCurrencies() => currencies = await this.HttpClient.GetFromJsonAsync<List<CurrencyDto>>("api/currencies");
+
+
+    public async Task AddWallet()
+    {
+        if (string.IsNullOrEmpty(newWallet.Currency.ToString()))
+            newWalletError = "Un portofel nu poate fi creat fara a alege o valuta.";
+        else
+        {
+            var result = await this.HttpClient.PostAsJsonAsync("api/wallets", newWallet);
+
+            if (!result.IsSuccessStatusCode)
+                newWalletError = await result.Content.ReadAsStringAsync();
+            else
+            {
+                await GetWallets();
+                newWallet = new();
+                newWalletError = string.Empty;
+            }
+        }
+
+        StateHasChanged();
+    }
+
+}

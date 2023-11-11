@@ -1,5 +1,3 @@
-using Endava.TechCourse.BankApp.Domain.Models;
-
 namespace Endava.TechCourse.BankApp.Shared;
 
 public class CurrencyDto
@@ -8,17 +6,7 @@ public class CurrencyDto
     public string Name { get; set; }
     public string Code { get; set; }
     public decimal ChangeRate { get; set; }
-
-    public static CurrencyDto From(Currency source)
-    {
-        return new CurrencyDto
-        {
-            Id = source.Id.ToString(),
-            Name = source.Name,
-            Code = source.Code,
-            ChangeRate = source.ChangeRate
-        };
-    }
+    public bool CanBeRemoved { get; set; } = true;
 
     public override string ToString()
     {
