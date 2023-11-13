@@ -1,11 +1,12 @@
+using Endava.TechCourse.BankApp.Application.Commands.AddWallet;
+using Endava.TechCourse.BankApp.Application.Commands.DeleteWallet;
+using Endava.TechCourse.BankApp.Application.Commands.UpdateWallet;
+using Endava.TechCourse.BankApp.Application.Queries.GetWalletById;
 using Endava.TechCourse.BankApp.Application.Queries.GetWallets;
-using Endava.TechCourse.BankApp.Domain.Models;
-using Endava.TechCourse.BankApp.Infrastructure.Persistence;
 using Endava.TechCourse.BankApp.Server.Common;
 using Endava.TechCourse.BankApp.Shared;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace Endava.TechCourse.BankApp.Server.Controllers;
 
@@ -13,40 +14,28 @@ namespace Endava.TechCourse.BankApp.Server.Controllers;
 [ApiController]
 public class WalletsController : ControllerBase
 {
-    private readonly ApplicationDbContext context;
     private readonly IMediator mediator;
 
-    public WalletsController(ApplicationDbContext context, IMediator mediator)
+    public WalletsController(IMediator mediator)
     {
-        ArgumentNullException.ThrowIfNull(context);
-        ArgumentNullException.ThrowIfNull(mediator);
+       ArgumentNullException.ThrowIfNull(mediator);
 
-        this.context = context;
         this.mediator = mediator;
     }
 
     [HttpPost]
-    public async Task CreateWallet([FromBody] WalletDto walletDto)
+    public async Task<IActionResult> CreateWallet([FromBody] WalletDto walletDto)
     {
-        // searching by 'x.Id.ToString()'
-        // this works in prod, but fails in UnitTests (FirstOrDefault/Async also fails in UnitTests)
-        // var currency = await context.Currencies.FirstAsync(x => x.Id.ToString() == walletDto.Currency.Id);
-
-        // searching by 'x.Id' (after converting the request string to Guid)
-        // this works in prod, also in UnitTests
-        if (!Guid.TryParse(walletDto.Currency.Id, out var requestCurrencyId))
-            throw new InvalidOperationException($"Received invalid Id: {walletDto.Currency.Id}");
-        var currency = await context.Currencies.FirstAsync(x => x.Id == requestCurrencyId);
-
-        var wallet = new Wallet
+        var command = new AddWalletCommand
         {
             Type = walletDto.Type,
             Amount = walletDto.Amount,
-            Currency = currency
+            CurrencyId = Guid.Parse(walletDto.Currency.Id)
         };
 
-        context.Wallets.Add(wallet);
-        await context.SaveChangesAsync();
+        var result = await mediator.Send(command);
+
+        return result.IsSuccessful ? Ok() : BadRequest(result.Error);
     }
 
     [HttpGet]
@@ -58,5 +47,47 @@ public class WalletsController : ControllerBase
         var walletDtos = wallets.Select(Mapper.Map).ToList();
 
         return walletDtos;
+    }
+
+    [HttpGet("{id}")]
+    public async Task<WalletDto> GetWalletById(Guid id)
+    {
+        var query = new GetWalletByIdQuery
+        {
+            Id = id
+        };
+        var wallet = await mediator.Send(query);
+
+        var walletDto = Mapper.Map(wallet);
+
+        return walletDto;
+    }
+
+    [HttpPut("{id}")]
+    public async Task<IActionResult> UpdateWallet(Guid id, [FromBody] WalletDto walletDto)
+    {
+        var command = new UpdateWalletCommand
+        {
+            Id = id,
+            Type = walletDto.Type,
+            Amount = walletDto.Amount,
+            CurrencyId = Guid.Parse(walletDto.Currency.Id)
+        };
+
+        var result = await mediator.Send(command);
+
+        return result.IsSuccessful ? Ok() : BadRequest(result.Error);
+    }
+
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> DeleteWallet(Guid id)
+    {
+        var command = new DeleteWalletCommand
+        {
+            Id = id
+        };
+        var result = await mediator.Send(command);
+
+        return result.IsSuccessful ? Ok() : BadRequest(result.Error);
     }
 }

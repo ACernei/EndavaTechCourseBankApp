@@ -7,4 +7,5 @@ public class Currency : BaseEntity
     public string Name { get; set; }
     public string Code { get; set; }
     public decimal ChangeRate { get; set; }
+    public List<Wallet> Wallets { get; set; } = new();
 }
