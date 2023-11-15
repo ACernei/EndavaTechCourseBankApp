@@ -1,5 +1,8 @@
 ﻿@page "/register"
 @layout EmptyLayout
+@inject HttpClient HttpClient
+@inject NavigationManager NavigationManager
+@inject AuthService AuthService
 
 <PageTitle>Endava .NET Tech Course</PageTitle>
 
@@ -12,14 +15,15 @@
                 </CardHeaderContent>
             </MudCardHeader>
             <MudCardContent Class="justify-md-center ">
-                <MudTextField T="string" Label="Nume" />
-                <MudTextField T="string" Label="Prenume" />
-                <MudTextField T="string" Label="Email" />
-                <MudTextField T="string" Label="Parola" InputType="InputType.Password" />
+                <MudTextField @bind-Value="newRegister.FirstName" T="string" Label="Nume"/>
+                <MudTextField @bind-Value="newRegister.LastName" T="string" Label="Prenume"/>
+                <MudTextField @bind-Value="newRegister.Username" T="string" Label="Nume de utilizator"/>
+                <MudTextField @bind-Value="newRegister.Email" T="string" Label="Email"/>
+                <MudTextField @bind-Value="newRegister.Password" T="string" Label="Parola" InputType="InputType.Password"/>
             </MudCardContent>
         </MudCard>
         <MudPaper Class="pa-4 mt-4">
-            <MudButton Variant="Variant.Filled" Color="Color.Secondary" DisableElevation="true" Class="mx-2">Ok</MudButton>
+            <MudButton OnClick="@RegisterNewUser" Variant="Variant.Filled" Color="Color.Secondary" DisableElevation="true" Class="mx-2">Inregistrat</MudButton>
             <MudButton Href="/login" Variant="Variant.Filled" Color="Color.Primary" DisableElevation="true">Autentificare</MudButton>
             <MudButton Href="/" Variant="Variant.Filled" Color="Color.Primary" DisableElevation="true" Class="mx-2">Acasa</MudButton>
         </MudPaper>
@@ -28,5 +32,18 @@
 
 
 @code {
+    RegisterDto newRegister = new();
+    string loginError = string.Empty;
+
+    public async Task RegisterNewUser()
+    {
+        var result = await AuthService.Register(newRegister);
+
+        if (result.Status)
+            NavigationManager.NavigateTo("");
+
+        loginError = result.Message;
+        StateHasChanged();
+    }
 
 }

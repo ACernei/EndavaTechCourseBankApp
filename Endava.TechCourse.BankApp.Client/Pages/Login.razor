@@ -1,10 +1,12 @@
 ﻿@page "/login"
 @layout EmptyLayout
+@inject NavigationManager NavigationManager
+@inject AuthService AuthService
 
 <PageTitle>Endava .NET Tech Course</PageTitle>
 
 <MudGrid Class="justify-md-center">
-    <MudItem sm="4">
+    <MudItem sm="5">
         <MudCard>
             <MudCardHeader>
                 <CardHeaderContent>
@@ -12,19 +14,39 @@
                 </CardHeaderContent>
             </MudCardHeader>
             <MudCardContent Class="justify-md-center">
-                <MudTextField T="string" Label="Email" />
-                <MudTextField T="string" Label="Parola"  InputType="InputType.Password"/>
+                <MudTextField @bind-Value="userInfo.Username" T="string" Label="Nume de utilizator"/>
+                <MudTextField @bind-Value="userInfo.Password" T="string" Label="Parola" InputType="InputType.Password"/>
             </MudCardContent>
         </MudCard>
         <MudPaper Class="pa-4 mt-4">
-            <MudButton Variant="Variant.Filled" Color="Color.Secondary" DisableElevation="true" Class="mx-2">Ok</MudButton>
+            <MudButton Variant="Variant.Filled" OnClick="@LoginUser" Color="Color.Secondary" DisableElevation="true" Class="mx-2">Autentificare</MudButton>
             <MudButton Href="/register" Variant="Variant.Filled" Color="Color.Primary" DisableElevation="true">Inregistrare</MudButton>
             <MudButton Href="/" Variant="Variant.Filled" Color="Color.Primary" DisableElevation="true" Class="mx-2">Acasa</MudButton>
         </MudPaper>
     </MudItem>
 </MudGrid>
 
-
 @code {
+    readonly LoginDto userInfo = new();
+    string loginError = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var isAuthenticated = await AuthService.IsUserAuthenticated();
+
+        if (isAuthenticated)
+            NavigationManager.NavigateTo("");
+    }
+
+    public async Task LoginUser()
+    {
+        var result = await AuthService.Login(userInfo);
+
+        if (result.Status)
+            NavigationManager.NavigateTo("");
+
+        loginError = result.Message;
+        StateHasChanged();
+    }
 
 }

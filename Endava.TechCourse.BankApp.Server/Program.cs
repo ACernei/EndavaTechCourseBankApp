@@ -9,13 +9,14 @@ using Endava.TechCourse.BankApp.Application.Queries.GetCurrencyById;
 using Endava.TechCourse.BankApp.Application.Queries.GetWalletById;
 using Endava.TechCourse.BankApp.Application.Queries.GetWallets;
 using Endava.TechCourse.BankApp.Infrastructure;
+using Endava.TechCourse.BankApp.Server.Composition;
 
 var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
 
 // Add services to the container.
 builder.Services.AddInfrastructure(configuration);
-
+builder.Services.AddJwtIdentity(configuration);
 builder.Services.AddMediatR(config =>
 {
     config.RegisterServicesFromAssembly(typeof(Program).Assembly);

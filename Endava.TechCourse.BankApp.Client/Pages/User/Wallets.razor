@@ -30,7 +30,7 @@
                     </MudCardHeader>
                     <MudCardContent>
                         <MudText>Balanta contului : @wallet.Amount</MudText>
-                        <MudText>Valuta - @wallet.Currency</MudText>
+                        <MudText>Valuta - @wallet.Currency.Code</MudText>
                     </MudCardContent>
                 </MudCard>
             </MudItem>
@@ -45,14 +45,26 @@
     }
     else
     {
-        <MudItem md="1" Class="d-flex align-center">
+        <MudItem md="12" Class="d-flex align-center">
+            <MudText GutterBottom="true">Indica tipul :</MudText>
+        </MudItem>
+        <MudItem md="2">
+            <MudTextField @bind-Value="newWallet.Type" Label="Type" Required="true"/>
+        </MudItem>
+        <MudItem md="12" Class="d-flex align-center">
+            <MudText GutterBottom="true">Indica suma :</MudText>
+        </MudItem>
+        <MudItem md="2">
+            <MudTextField @bind-Value="newWallet.Amount" Label="Amount" Required="true"/>
+        </MudItem>
+        <MudItem md="12" Class="d-flex align-center">
             <MudText GutterBottom="true">Alege valuta :</MudText>
         </MudItem>
         <MudItem md="2">
-            <MudSelect T="string" @bind-Value="newWallet.Currency.Code" Label="Valuta" Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter">
+            <MudSelect T="CurrencyDto" @bind-Value="newWallet.Currency" Label="Valuta" Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter">
                 @foreach (var currency in currencies)
                 {
-                    <MudSelectItem T="string" Value="currency.Code"/>
+                    <MudSelectItem T="CurrencyDto" Value="currency"/>
                 }
             </MudSelect>
         </MudItem>
@@ -84,24 +96,33 @@
         await base.OnInitializedAsync();
     }
 
-    public async Task GetWallets() => wallets = await this.HttpClient.GetFromJsonAsync<List<WalletDto>>("api/wallets");
-    public async Task GetCurrencies() => currencies = await this.HttpClient.GetFromJsonAsync<List<CurrencyDto>>("api/currencies");
+    public async Task GetWallets()
+    {
+        wallets = await HttpClient.GetFromJsonAsync<List<WalletDto>>("api/wallets");
+    }
+
+    public async Task GetCurrencies()
+    {
+        currencies = await HttpClient.GetFromJsonAsync<List<CurrencyDto>>("api/currencies");
+    }
 
 
     public async Task AddWallet()
     {
-        if (string.IsNullOrEmpty(newWallet.Currency.ToString()))
-            newWalletError = "Un portofel nu poate fi creat fara a alege o valuta.";
+        if (string.IsNullOrEmpty(newWallet.Currency.Code))
+            newWalletError += "Un portofel nu poate fi creat fara a alege o valuta.";
         else
         {
-            var result = await this.HttpClient.PostAsJsonAsync("api/wallets", newWallet);
+            newWalletError += $"{newWallet}";
+
+            var result = await HttpClient.PostAsJsonAsync("api/wallets", newWallet);
 
             if (!result.IsSuccessStatusCode)
                 newWalletError = await result.Content.ReadAsStringAsync();
             else
             {
                 await GetWallets();
-                newWallet = new();
+                newWallet = new WalletDto();
                 newWalletError = string.Empty;
             }
         }

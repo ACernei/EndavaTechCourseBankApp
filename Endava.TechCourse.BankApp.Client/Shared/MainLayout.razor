@@ -1,26 +1,34 @@
 ﻿@inherits LayoutComponentBase
-
-<MudThemeProvider Theme="Theme" />
-<MudDialogProvider />
-<MudSnackbarProvider />
+@inject AuthService AuthService
+<MudThemeProvider Theme="Theme"/>
+<MudDialogProvider/>
+<MudSnackbarProvider/>
 
 <MudLayout>
     <MudAppBar Elevation="0" Color="Color.Primary">
-        <h2>Endava University Bank App | </h2>
+        <h2>Endava Tech Course Bank App | </h2>
         <MudButton Href="/" Variant="Variant.Text" Style=@($"color:{Theme.PaletteDark.White}") Class="ml-4">Pagina Principala</MudButton>
-        <MudButton Href="/user-panel" Variant="Variant.Text" Style=@($"color:{Theme.PaletteDark.White}") Class="ml-4">Panou utilizator</MudButton>
-        <MudButton Href="/admin-panel" Variant="Variant.Text" Style=@($"color:{Theme.PaletteDark.White}") Class="ml-4">Panou administrator</MudButton>
 
-        <MudSpacer />
-        <MudButton Href="/login" Variant="Variant.Filled" DisableElevation="true" Color="Color.Tertiary" Class="mr-4">Autentificare</MudButton>
-        <MudButton Href="/register" Variant="Variant.Filled" DisableElevation="true" Color="Color.Secondary" Class="mr-4">Inregistrare</MudButton>
+        <AuthorizeView>
+            <Authorized>
+                <MudButton Href="/user-panel" Variant="Variant.Text" Style=@($"color:{Theme.PaletteDark.White}") Class="ml-4">Panou utilizator</MudButton>
+                <MudButton Href="/admin-panel" Variant="Variant.Text" Style=@($"color:{Theme.PaletteDark.White}") Class="ml-4">Panou administrator</MudButton>
+                <MudSpacer/>
+                <MudButton Variant="Variant.Filled" OnClick="@Logout" Color="Color.Secondary" DisableElevation="true" Class="mx-2">Logout</MudButton>
+            </Authorized>
+            <NotAuthorized>
+                <MudSpacer/>
+                <MudButton Href="/login" Variant="Variant.Filled" DisableElevation="true" Color="Color.Tertiary" Class="mr-4">Autentificare</MudButton>
+                <MudButton Href="/register" Variant="Variant.Filled" DisableElevation="true" Color="Color.Secondary" Class="mr-4">Inregistrare</MudButton>
+            </NotAuthorized>
+        </AuthorizeView>
     </MudAppBar>
 
     <MudMainContent>
         <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="my-8">
             @Body
             <MudScrollToTop>
-                <MudFab Color="Color.Tertiary" StartIcon="@Icons.Material.Filled.ArrowCircleUp" />
+                <MudFab Color="Color.Tertiary" StartIcon="@Icons.Material.Filled.ArrowCircleUp"/>
             </MudScrollToTop>
         </MudContainer>
     </MudMainContent>
@@ -28,11 +36,14 @@
 
 
 @code {
-    private MudTheme Theme = new MudTheme()
+
+    private readonly MudTheme Theme = new()
     {
-        Palette = new PaletteLight()
+        Palette = new PaletteLight
         {
             Tertiary = Colors.DeepPurple.Darken4
-        },
+        }
     };
+    private async Task Logout() => await AuthService.Logout();
+
 }
