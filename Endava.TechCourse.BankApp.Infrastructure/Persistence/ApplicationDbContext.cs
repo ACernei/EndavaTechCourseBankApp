@@ -1,4 +1,5 @@
 using Endava.TechCourse.BankApp.Domain.Models;
+using Endava.TechCourse.BankApp.Infrastructure.Configurations;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -33,5 +34,7 @@ public class ApplicationDbContext : IdentityDbContext<User, IdentityRole<Guid>, 
             .IsRequired();
 
         base.OnModelCreating(modelBuilder);
+
+        modelBuilder.ApplyConfiguration(new RoleConfigurations());
     }
 }
