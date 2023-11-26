@@ -18,11 +18,9 @@ public class UpdateCurrencyHandler : IRequestHandler<UpdateCurrencyCommand, Comm
     public async Task<CommandStatus> Handle(UpdateCurrencyCommand request, CancellationToken cancellationToken)
     {
         var currency = await context.Currencies
-            .AsNoTracking()
             .FirstOrDefaultAsync(x => x.Id == request.Id, cancellationToken);
 
-
-        if (currency == null)
+        if (currency is null)
             return CommandStatus.Failed("Valuta nu exista.");
 
         if (await context.Currencies.AnyAsync(x => x.Name == request.Name && x.Id != request.Id))

@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Endava.TechCourse.BankApp.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20231113135012_InitialCreate")]
+    [Migration("20231123221928_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -48,6 +48,46 @@ namespace Endava.TechCourse.BankApp.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Currencies");
+                });
+
+            modelBuilder.Entity("Endava.TechCourse.BankApp.Domain.Models.Transaction", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<Guid>("CurrencyId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("SourceId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("TargetId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("TimeStamp")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("TransactionType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CurrencyId");
+
+                    b.HasIndex("SourceId");
+
+                    b.HasIndex("TargetId");
+
+                    b.ToTable("Transactions");
                 });
 
             modelBuilder.Entity("Endava.TechCourse.BankApp.Domain.Models.User", b =>
@@ -139,13 +179,18 @@ namespace Endava.TechCourse.BankApp.Infrastructure.Migrations
                     b.Property<DateTime>("TimeStamp")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("Type")
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("WalletType")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("CurrencyId");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("Wallets");
                 });
@@ -180,13 +225,13 @@ namespace Endava.TechCourse.BankApp.Infrastructure.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("7cf3f71b-db60-4f76-8f54-516ef5d63fa5"),
+                            Id = new Guid("18cefdb8-fdb1-4a91-960f-a952d76cd6d3"),
                             Name = "User",
                             NormalizedName = "User"
                         },
                         new
                         {
-                            Id = new Guid("3e8d8181-4b17-48f9-ad37-a11cf62e06af"),
+                            Id = new Guid("3db59dfd-26b3-46b5-a885-a46385cfb880"),
                             Name = "Admin",
                             NormalizedName = "Admin"
                         });
@@ -295,6 +340,33 @@ namespace Endava.TechCourse.BankApp.Infrastructure.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("Endava.TechCourse.BankApp.Domain.Models.Transaction", b =>
+                {
+                    b.HasOne("Endava.TechCourse.BankApp.Domain.Models.Currency", "Currency")
+                        .WithMany()
+                        .HasForeignKey("CurrencyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Endava.TechCourse.BankApp.Domain.Models.Wallet", "Source")
+                        .WithMany("InitiatedTransactions")
+                        .HasForeignKey("SourceId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("Endava.TechCourse.BankApp.Domain.Models.Wallet", "Target")
+                        .WithMany("ReceivedTransactions")
+                        .HasForeignKey("TargetId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Currency");
+
+                    b.Navigation("Source");
+
+                    b.Navigation("Target");
+                });
+
             modelBuilder.Entity("Endava.TechCourse.BankApp.Domain.Models.Wallet", b =>
                 {
                     b.HasOne("Endava.TechCourse.BankApp.Domain.Models.Currency", "Currency")
@@ -303,7 +375,15 @@ namespace Endava.TechCourse.BankApp.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Endava.TechCourse.BankApp.Domain.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("Currency");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
@@ -360,6 +440,13 @@ namespace Endava.TechCourse.BankApp.Infrastructure.Migrations
             modelBuilder.Entity("Endava.TechCourse.BankApp.Domain.Models.Currency", b =>
                 {
                     b.Navigation("Wallets");
+                });
+
+            modelBuilder.Entity("Endava.TechCourse.BankApp.Domain.Models.Wallet", b =>
+                {
+                    b.Navigation("InitiatedTransactions");
+
+                    b.Navigation("ReceivedTransactions");
                 });
 #pragma warning restore 612, 618
         }
