@@ -6,6 +6,7 @@ using Endava.TechCourse.BankApp.Application.Queries.GetCurrencyById;
 using Endava.TechCourse.BankApp.Server.Common;
 using Endava.TechCourse.BankApp.Shared;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Endava.TechCourse.BankApp.Server.Controllers;
@@ -24,6 +25,7 @@ public class CurrenciesController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> AddCurrency([FromBody] CurrencyDto currencyDto)
     {
         var command = new AddCurrencyCommand
@@ -39,6 +41,7 @@ public class CurrenciesController : ControllerBase
     }
 
     [HttpGet]
+    [Authorize(Roles = "Admin,User")]
     public async Task<List<CurrencyDto>> GetCurrencies()
     {
         var query = new GetCurrenciesQuery();
@@ -50,6 +53,7 @@ public class CurrenciesController : ControllerBase
     }
 
     [HttpGet("{id}")]
+    [Authorize(Roles = "Admin,User")]
     public async Task<CurrencyDto> GetCurrencyById(Guid id)
     {
         var query = new GetCurrencyByIdQuery
@@ -64,6 +68,7 @@ public class CurrenciesController : ControllerBase
     }
 
     [HttpPut("{id}")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> UpdateCurrency(Guid id, [FromBody] CurrencyDto currencyDto)
     {
         var command = new UpdateCurrencyCommand
@@ -80,6 +85,7 @@ public class CurrenciesController : ControllerBase
     }
 
     [HttpDelete("{id}")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeleteCurrency(Guid id)
     {
         var command = new DeleteCurrencyCommand

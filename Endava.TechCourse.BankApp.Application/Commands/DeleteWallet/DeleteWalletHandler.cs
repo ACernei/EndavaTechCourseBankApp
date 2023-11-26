@@ -18,12 +18,15 @@ public class DeleteWalletHandler : IRequestHandler<DeleteWalletCommand, CommandS
     public async Task<CommandStatus> Handle(DeleteWalletCommand request, CancellationToken cancellationToken)
     {
         var wallet = await context.Wallets
-            .AsNoTracking()
-            .FirstOrDefaultAsync(x => x.Id == request.Id, cancellationToken);
+            .Include(x => x.InitiatedTransactions)
+            .Include(x => x.ReceivedTransactions)
+            .FirstOrDefaultAsync(wallet => wallet.Id == request.Id, cancellationToken);
 
-        if (wallet == null)
+        if (wallet is null)
             return CommandStatus.Failed("Portofelul nu exista.");
 
+        context.RemoveRange(wallet.InitiatedTransactions);
+        context.RemoveRange(wallet.ReceivedTransactions);
         context.Wallets.Remove(wallet);
         await context.SaveChangesAsync(cancellationToken);
 

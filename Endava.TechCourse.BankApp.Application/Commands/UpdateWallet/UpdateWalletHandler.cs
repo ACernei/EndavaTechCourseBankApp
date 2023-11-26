@@ -18,13 +18,12 @@ public class UpdateWalletHandler : IRequestHandler<UpdateWalletCommand, CommandS
     public async Task<CommandStatus> Handle(UpdateWalletCommand request, CancellationToken cancellationToken)
     {
         var wallet = await context.Wallets
-            .AsNoTracking()
             .FirstOrDefaultAsync(x => x.Id == request.Id, cancellationToken);
 
-        if (wallet == null)
+        if (wallet is null)
             return CommandStatus.Failed("Portofelul nu exista.");
 
-        wallet.Type = request.Type;
+        wallet.WalletType = request.WalletType;
         wallet.Amount = request.Amount;
         wallet.CurrencyId = request.CurrencyId;
 

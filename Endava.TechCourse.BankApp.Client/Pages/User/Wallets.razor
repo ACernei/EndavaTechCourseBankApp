@@ -1,5 +1,5 @@
 @page "/wallets"
-@layout UserLayout
+@layout MainLayout
 @inject HttpClient HttpClient
 
 <PageTitle>Endava .NET Tech Course</PageTitle>
@@ -49,7 +49,7 @@
             <MudText GutterBottom="true">Indica tipul :</MudText>
         </MudItem>
         <MudItem md="2">
-            <MudTextField @bind-Value="newWallet.Type" Label="Type" Required="true"/>
+            <MudTextField @bind-Value="newWallet.WalletType" Label="Type" Required="true"/>
         </MudItem>
         <MudItem md="12" Class="d-flex align-center">
             <MudText GutterBottom="true">Indica suma :</MudText>
@@ -69,7 +69,7 @@
             </MudSelect>
         </MudItem>
         <MudItem md="2">
-            <MudButton Class="mt-4" Variant="Variant.Filled" Color="Color.Primary" OnClick="AddWallet">Adauga</MudButton>
+            <MudButton Class="mt-4" Variant="Variant.Filled" Color="Color.Primary" OnClick="@AddWallet">Adauga</MudButton>
         </MudItem>
         <MudItem md="12">
             @if (newWalletError != string.Empty)

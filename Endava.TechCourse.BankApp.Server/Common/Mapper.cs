@@ -11,7 +11,7 @@ public static class Mapper
         {
             Id = source.Id.ToString(),
             CreationDate = source.TimeStamp,
-            Type = source.Type,
+            WalletType = source.WalletType,
             Amount = source.Amount,
             Currency = Map(source.Currency)
         };
@@ -25,6 +25,18 @@ public static class Mapper
             Name = source.Name,
             Code = source.Code,
             ChangeRate = source.ChangeRate
+        };
+    }
+
+    public static TransactionDto Map(Transaction source)
+    {
+        return new TransactionDto
+        {
+            TransactionType = source.TransactionType,
+            SourceId = source.SourceId.ToString(),
+            TargetId = source.TargetId.ToString(),
+            Amount = source.Amount,
+            Description = source.Description
         };
     }
 }

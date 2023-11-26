@@ -1,13 +1,12 @@
 ﻿@page "/register"
 @layout EmptyLayout
-@inject HttpClient HttpClient
-@inject NavigationManager NavigationManager
 @inject AuthService AuthService
+@inject NavigationManager NavigationManager
 
 <PageTitle>Endava .NET Tech Course</PageTitle>
 
 <MudGrid Class="justify-md-center">
-    <MudItem sm="4">
+    <MudItem sm="5">
         <MudCard>
             <MudCardHeader>
                 <CardHeaderContent>
@@ -15,15 +14,15 @@
                 </CardHeaderContent>
             </MudCardHeader>
             <MudCardContent Class="justify-md-center ">
-                <MudTextField @bind-Value="newRegister.FirstName" T="string" Label="Nume"/>
-                <MudTextField @bind-Value="newRegister.LastName" T="string" Label="Prenume"/>
-                <MudTextField @bind-Value="newRegister.Username" T="string" Label="Nume de utilizator"/>
-                <MudTextField @bind-Value="newRegister.Email" T="string" Label="Email"/>
-                <MudTextField @bind-Value="newRegister.Password" T="string" Label="Parola" InputType="InputType.Password"/>
+                <MudTextField @bind-Value="newUser.FirstName" T="string" Label="Nume"/>
+                <MudTextField @bind-Value="newUser.LastName" T="string" Label="Prenume"/>
+                <MudTextField @bind-Value="newUser.Username" T="string" Label="Nume de utilizator"/>
+                <MudTextField @bind-Value="newUser.Email" T="string" Label="Email"/>
+                <MudTextField @bind-Value="newUser.Password" T="string" Label="Parola" InputType="InputType.Password"/>
             </MudCardContent>
         </MudCard>
         <MudPaper Class="pa-4 mt-4">
-            <MudButton OnClick="@RegisterNewUser" Variant="Variant.Filled" Color="Color.Secondary" DisableElevation="true" Class="mx-2">Inregistrat</MudButton>
+            <MudButton Variant="Variant.Filled" OnClick="@RegisterNewUser" Color="Color.Secondary" DisableElevation="true" Class="mx-2">Inregistrare</MudButton>
             <MudButton Href="/login" Variant="Variant.Filled" Color="Color.Primary" DisableElevation="true">Autentificare</MudButton>
             <MudButton Href="/" Variant="Variant.Filled" Color="Color.Primary" DisableElevation="true" Class="mx-2">Acasa</MudButton>
         </MudPaper>
@@ -32,17 +31,25 @@
 
 
 @code {
-    RegisterDto newRegister = new();
-    string loginError = string.Empty;
+    readonly RegisterDto newUser = new();
+    string registerError = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var isAuthenticated = await AuthService.IsUserAuthenticated();
+
+        if (isAuthenticated)
+            NavigationManager.NavigateTo("");
+    }
 
     public async Task RegisterNewUser()
     {
-        var result = await AuthService.Register(newRegister);
+        var result = await AuthService.Register(newUser);
 
         if (result.Status)
             NavigationManager.NavigateTo("");
 
-        loginError = result.Message;
+        registerError = result.Message;
         StateHasChanged();
     }
 

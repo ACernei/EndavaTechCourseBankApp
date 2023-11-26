@@ -21,4 +21,8 @@
         <ProjectReference Include="..\Endava.TechCourse.BankApp.Domain\Endava.TechCourse.BankApp.Domain.csproj"/>
     </ItemGroup>
 
+    <ItemGroup>
+        <Folder Include="Migrations\"/>
+    </ItemGroup>
+
 </Project>

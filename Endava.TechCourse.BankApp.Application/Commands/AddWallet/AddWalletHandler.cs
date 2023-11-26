@@ -19,9 +19,10 @@ public class AddWalletHandler : IRequestHandler<AddWalletCommand, CommandStatus>
     {
         var wallet = new Wallet
         {
-            Type = request.Type,
+            WalletType = request.WalletType,
             Amount = request.Amount,
-            CurrencyId = request.CurrencyId
+            CurrencyId = request.CurrencyId,
+            UserId = request.UserId
         };
 
         await context.Wallets.AddAsync(wallet, cancellationToken);
