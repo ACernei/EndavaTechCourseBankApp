@@ -245,8 +245,8 @@ namespace Endava.TechCourse.BankApp.Infrastructure.Migrations
                 columns: new[] { "Id", "ConcurrencyStamp", "Name", "NormalizedName" },
                 values: new object[,]
                 {
-                    { new Guid("97b94d94-3dde-4e4b-82ea-017fe0a9552f"), null, "User", "User" },
-                    { new Guid("cdb5f2c1-08f4-4957-9b15-22d047af9b8b"), null, "Admin", "Admin" }
+                    { new Guid("bbbdaaad-0454-4016-ab31-7afb5552a482"), null, "User", "User" },
+                    { new Guid("d2dfbdf1-5b60-4a92-a692-d9a5f5354d20"), null, "Admin", "Admin" }
                 });
 
             migrationBuilder.CreateIndex(

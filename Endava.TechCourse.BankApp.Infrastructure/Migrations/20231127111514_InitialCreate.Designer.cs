@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Endava.TechCourse.BankApp.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20231127104556_InitialCreate")]
+    [Migration("20231127111514_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -20,7 +20,7 @@ namespace Endava.TechCourse.BankApp.Infrastructure.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "7.0.13")
+                .HasAnnotation("ProductVersion", "8.0.0")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -258,13 +258,13 @@ namespace Endava.TechCourse.BankApp.Infrastructure.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("97b94d94-3dde-4e4b-82ea-017fe0a9552f"),
+                            Id = new Guid("bbbdaaad-0454-4016-ab31-7afb5552a482"),
                             Name = "User",
                             NormalizedName = "User"
                         },
                         new
                         {
-                            Id = new Guid("cdb5f2c1-08f4-4957-9b15-22d047af9b8b"),
+                            Id = new Guid("d2dfbdf1-5b60-4a92-a692-d9a5f5354d20"),
                             Name = "Admin",
                             NormalizedName = "Admin"
                         });
