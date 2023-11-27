@@ -8,4 +8,6 @@ public class TransactionDto
     public decimal Amount { get; set; }
     public string Description { get; set; }
     public string CurrencyId { get; set; }
+    public string TargetSearchTerm { get; set; }
+    public TargetSearchMethod TargetSearchMethod { get; set; }
 }

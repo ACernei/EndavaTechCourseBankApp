@@ -1,0 +1,185 @@
+@page "/walletTypes"
+@layout MainLayout
+@inject HttpClient HttpClient
+
+<AuthorizeView Roles="Admin">
+    <MudGrid>
+        <MudItem md="7">
+            @if (walletTypes is null || !walletTypes.Any())
+            {
+                <MudAlert Class="pa-4 mt-6" Severity="Severity.Error">Nu exista tipuri la moment.</MudAlert>
+            }
+            else
+            {
+                <MudTable Elevation="3" Class="pa-4 mt-6" Items="@walletTypes" Height="400px"
+                          Hover="true" Dense="true" CanCancelEdit="true" IsEditRowSwitchingBlocked="true"
+                          EditTrigger="TableEditTrigger.EditButton"
+                          ApplyButtonPosition="TableApplyButtonPosition.Start" EditButtonPosition="TableEditButtonPosition.Start"
+                          RowEditPreview="BackupItem" RowEditCancel="ResetItemToOriginalValues"
+                          RowEditCommit="UpdateWalletType">
+                    <HeaderContent>
+                        <MudTh>Denumirea</MudTh>
+                        <MudTh>Comision</MudTh>
+                        <MudTh></MudTh>
+                    </HeaderContent>
+
+                    <RowTemplate Context="walletType">
+                        <MudTd DataLabel="@nameof(WalletTypeDto.Name)">@walletType.Name</MudTd>
+                        <MudTd DataLabel="@nameof(WalletTypeDto.TransactionFee)">@walletType.TransactionFee</MudTd>
+                        <MudTd>
+                            @if (walletType.CanBeRemoved)
+                            {
+                                <MudButton Color="Color.Error" OnClick="@(e => DeleteWalletType(walletType.Id))">Sterge</MudButton>
+                            }
+                        </MudTd>
+                    </RowTemplate>
+
+                    <RowEditingTemplate Context="walletType">
+                        <MudTd DataLabel="@nameof(WalletTypeDto.Name)">
+                            <MudTextField @bind-Value="@walletType.Name" Required/>
+                        </MudTd>
+                        <MudTd DataLabel="@nameof(WalletTypeDto.TransactionFee)">
+                            <MudNumericField @bind-Value="@walletType.TransactionFee" Required/>
+                        </MudTd>
+                    </RowEditingTemplate>
+                    <EditButtonContent Context="button">
+                        <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.Edit" Class="pa-0" OnClick="@button.ButtonAction" Disabled="@button.ButtonDisabled"/>
+                    </EditButtonContent>
+                </MudTable>
+                <MudItem md="12">
+                    @if (error != string.Empty)
+                    {
+                        <MudAlert>@error</MudAlert>
+                    }
+                </MudItem>
+            }
+        </MudItem>
+
+        <MudItem md="4">
+            <MudGrid>
+                <MudItem md="12" Class="mt-4">
+                    <MudText>Tip portofel nou : </MudText>
+                </MudItem>
+                <MudItem md="12">
+                    <MudPaper Elevation="3" Class="pa-2">
+                        <MudTextField T="string" @bind-Value="newWalletType.Name" Label="Denumirea tipului"/>
+                    </MudPaper>
+                </MudItem>
+                <MudItem md="4">
+                    <MudPaper Elevation="3" Class="pa-2">
+                        <MudNumericField T="decimal" @bind-Value="newWalletType.TransactionFee" Label="Comision"/>
+                    </MudPaper>
+                </MudItem>
+                <MudItem md="3">
+                    <MudButton Class="mt-4" Variant="Variant.Filled" Color="Color.Primary" OnClick="AddWalletType">Adauga</MudButton>
+                </MudItem>
+                <MudItem md="12">
+                    @if (error != string.Empty)
+                    {
+                        <MudAlert>@error</MudAlert>
+                    }
+                </MudItem>
+            </MudGrid>
+        </MudItem>
+    </MudGrid>
+</AuthorizeView>
+
+@code {
+    private IEnumerable<WalletTypeDto> walletTypes;
+    private WalletTypeDto newWalletType = new();
+    private WalletTypeDto walletTypeBeforeEdit;
+    private string error = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetWalletTypes();
+        StateHasChanged();
+
+        await base.OnInitializedAsync();
+    }
+
+    private async Task GetWalletTypes()
+    {
+        walletTypes = await HttpClient.GetFromJsonAsync<List<WalletTypeDto>>("api/walletTypes");
+    }
+
+    private async Task AddWalletType()
+    {
+        if (string.IsNullOrEmpty(newWalletType.Name))
+        {
+            error = "Numele tipului nu poate fi gol";
+            return;
+        }
+        if (newWalletType.TransactionFee < 0)
+        {
+            error = "Comisionul nu poate fi mai mic ca 0";
+            return;
+        }
+
+        var result = await HttpClient.PostAsJsonAsync("api/walletTypes", newWalletType);
+        if (result.IsSuccessStatusCode)
+        {
+            await GetWalletTypes();
+            error = string.Empty;
+            newWalletType = new WalletTypeDto();
+        }
+        else
+        {
+            error = await result.Content.ReadAsStringAsync();
+        }
+        StateHasChanged();
+    }
+
+    private async void UpdateWalletType(object element)
+    {
+        var walletType = (WalletTypeDto)element;
+        var result = await HttpClient.PutAsJsonAsync($"api/walletTypes/{walletType.Id}", walletType);
+        if (result.IsSuccessStatusCode)
+        {
+            await GetWalletTypes();
+            error = string.Empty;
+        }
+        else
+        {
+            error = await result.Content.ReadAsStringAsync();
+        }
+        StateHasChanged();
+    }
+
+    private async Task DeleteWalletType(string id)
+    {
+        var result = await HttpClient.DeleteAsync($"api/walletTypes/{id}");
+        if (result.IsSuccessStatusCode)
+        {
+            await GetWalletTypes();
+            error = string.Empty;
+        }
+        else
+        {
+            error = await result.Content.ReadAsStringAsync();
+        }
+        StateHasChanged();
+    }
+
+    private void ResetItemToOriginalValues(object element)
+    {
+        var walletType = (WalletTypeDto)element;
+        walletType.Id = walletTypeBeforeEdit.Id;
+        walletType.Name = walletTypeBeforeEdit.Name;
+        walletType.TransactionFee = walletTypeBeforeEdit.TransactionFee;
+        StateHasChanged();
+    }
+
+    private void BackupItem(object element)
+    {
+        var walletType = (WalletTypeDto)element;
+        walletTypeBeforeEdit = new WalletTypeDto
+        {
+            Id = walletType.Id,
+            Name = walletType.Name,
+            TransactionFee = walletType.TransactionFee
+        };
+        StateHasChanged();
+    }
+
+}

@@ -16,4 +16,10 @@
     <ItemGroup>
         <ProjectReference Include="..\Endava.TechCourse.BankApp.Shared\Endava.TechCourse.BankApp.Shared.csproj"/>
     </ItemGroup>
+
+    <ItemGroup>
+        <_ContentIncludedByDefault Remove="Pages\Wallet\WalletCreation.razor"/>
+        <_ContentIncludedByDefault Remove="Pages\Wallet\WalletDetails.razor"/>
+        <_ContentIncludedByDefault Remove="Pages\Wallet\Wallets.razor"/>
+    </ItemGroup>
 </Project>

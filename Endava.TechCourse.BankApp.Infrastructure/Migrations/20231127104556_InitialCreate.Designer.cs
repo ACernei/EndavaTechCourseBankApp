@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Endava.TechCourse.BankApp.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20231123221928_InitialCreate")]
+    [Migration("20231127104556_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -124,6 +124,9 @@ namespace Endava.TechCourse.BankApp.Infrastructure.Migrations
                     b.Property<DateTimeOffset?>("LockoutEnd")
                         .HasColumnType("datetimeoffset");
 
+                    b.Property<Guid?>("MainWalletId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("NormalizedEmail")
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
@@ -153,6 +156,10 @@ namespace Endava.TechCourse.BankApp.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("MainWalletId")
+                        .IsUnique()
+                        .HasFilter("[MainWalletId] IS NOT NULL");
+
                     b.HasIndex("NormalizedEmail")
                         .HasDatabaseName("EmailIndex");
 
@@ -173,6 +180,10 @@ namespace Endava.TechCourse.BankApp.Infrastructure.Migrations
                     b.Property<decimal>("Amount")
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<Guid>("CurrencyId")
                         .HasColumnType("uniqueidentifier");
 
@@ -182,9 +193,8 @@ namespace Endava.TechCourse.BankApp.Infrastructure.Migrations
                     b.Property<Guid>("UserId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("WalletType")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<Guid>("WalletTypeId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
 
@@ -192,7 +202,30 @@ namespace Endava.TechCourse.BankApp.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
+                    b.HasIndex("WalletTypeId");
+
                     b.ToTable("Wallets");
+                });
+
+            modelBuilder.Entity("Endava.TechCourse.BankApp.Domain.Models.WalletType", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("TimeStamp")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal>("TransactionFee")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("WalletTypes");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole<System.Guid>", b =>
@@ -225,13 +258,13 @@ namespace Endava.TechCourse.BankApp.Infrastructure.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("18cefdb8-fdb1-4a91-960f-a952d76cd6d3"),
+                            Id = new Guid("97b94d94-3dde-4e4b-82ea-017fe0a9552f"),
                             Name = "User",
                             NormalizedName = "User"
                         },
                         new
                         {
-                            Id = new Guid("3db59dfd-26b3-46b5-a885-a46385cfb880"),
+                            Id = new Guid("cdb5f2c1-08f4-4957-9b15-22d047af9b8b"),
                             Name = "Admin",
                             NormalizedName = "Admin"
                         });
@@ -367,6 +400,16 @@ namespace Endava.TechCourse.BankApp.Infrastructure.Migrations
                     b.Navigation("Target");
                 });
 
+            modelBuilder.Entity("Endava.TechCourse.BankApp.Domain.Models.User", b =>
+                {
+                    b.HasOne("Endava.TechCourse.BankApp.Domain.Models.Wallet", "MainWallet")
+                        .WithOne()
+                        .HasForeignKey("Endava.TechCourse.BankApp.Domain.Models.User", "MainWalletId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("MainWallet");
+                });
+
             modelBuilder.Entity("Endava.TechCourse.BankApp.Domain.Models.Wallet", b =>
                 {
                     b.HasOne("Endava.TechCourse.BankApp.Domain.Models.Currency", "Currency")
@@ -376,14 +419,20 @@ namespace Endava.TechCourse.BankApp.Infrastructure.Migrations
                         .IsRequired();
 
                     b.HasOne("Endava.TechCourse.BankApp.Domain.Models.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
+                        .WithMany("Wallets")
+                        .HasForeignKey("UserId");
+
+                    b.HasOne("Endava.TechCourse.BankApp.Domain.Models.WalletType", "WalletType")
+                        .WithMany("Wallets")
+                        .HasForeignKey("WalletTypeId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Currency");
 
                     b.Navigation("User");
+
+                    b.Navigation("WalletType");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
@@ -442,11 +491,21 @@ namespace Endava.TechCourse.BankApp.Infrastructure.Migrations
                     b.Navigation("Wallets");
                 });
 
+            modelBuilder.Entity("Endava.TechCourse.BankApp.Domain.Models.User", b =>
+                {
+                    b.Navigation("Wallets");
+                });
+
             modelBuilder.Entity("Endava.TechCourse.BankApp.Domain.Models.Wallet", b =>
                 {
                     b.Navigation("InitiatedTransactions");
 
                     b.Navigation("ReceivedTransactions");
+                });
+
+            modelBuilder.Entity("Endava.TechCourse.BankApp.Domain.Models.WalletType", b =>
+                {
+                    b.Navigation("Wallets");
                 });
 #pragma warning restore 612, 618
         }

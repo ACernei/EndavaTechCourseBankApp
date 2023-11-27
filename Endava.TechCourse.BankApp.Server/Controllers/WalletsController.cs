@@ -1,5 +1,6 @@
 using Endava.TechCourse.BankApp.Application.Commands.AddWallet;
 using Endava.TechCourse.BankApp.Application.Commands.DeleteWallet;
+using Endava.TechCourse.BankApp.Application.Commands.SetMainWallet;
 using Endava.TechCourse.BankApp.Application.Commands.UpdateWallet;
 using Endava.TechCourse.BankApp.Application.Queries.GetWalletById;
 using Endava.TechCourse.BankApp.Application.Queries.GetWallets;
@@ -13,6 +14,7 @@ namespace Endava.TechCourse.BankApp.Server.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
+[Authorize(Roles = "User")]
 public class WalletsController : ControllerBase
 {
     private readonly IMediator mediator;
@@ -25,20 +27,41 @@ public class WalletsController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Roles = "User")]
     public async Task<IActionResult> CreateWallet([FromBody] WalletDto walletDto)
     {
         var userIdClaim = User.Claims.FirstOrDefault(x => x.Type == "userId");
-        if (userIdClaim is null)
+        if (userIdClaim is null || !Guid.TryParse(userIdClaim.Value, out var userId))
             return BadRequest("UserId invalid");
-
+        if (!Guid.TryParse(walletDto.CurrencyId, out var currencyId))
+            return BadRequest("CurrencyId invalid");
+        if (!Guid.TryParse(walletDto.WalletTypeId, out var walletTypeId))
+            return BadRequest("WalletTypeId invalid");
 
         var command = new AddWalletCommand
         {
-            WalletType = walletDto.WalletType,
+            WalletTypeId = walletTypeId,
             Amount = walletDto.Amount,
-            CurrencyId = Guid.Parse(walletDto.Currency.Id),
-            UserId = Guid.Parse(userIdClaim.Value)
+            CurrencyId = currencyId,
+            UserId = userId
+        };
+
+        var result = await mediator.Send(command);
+
+        return result.IsSuccessful ? Ok() : BadRequest(result.Error);
+    }
+
+    [HttpPost]
+    [Route("SetMainWallet/{walletId}")]
+    public async Task<IActionResult> SetMainWallet(Guid walletId)
+    {
+        var userIdClaim = User.Claims.FirstOrDefault(x => x.Type == "userId");
+        if (userIdClaim is null || !Guid.TryParse(userIdClaim.Value, out var userId))
+            return BadRequest("UserId invalid");
+
+        var command = new SetMainWalletCommand
+        {
+            WalletId = walletId,
+            UserId = userId
         };
 
         var result = await mediator.Send(command);
@@ -67,7 +90,6 @@ public class WalletsController : ControllerBase
     }
 
     [HttpGet("{id}")]
-    [Authorize(Roles = "User")]
     public async Task<WalletDto> GetWalletById(Guid id)
     {
         var userIdClaim = User.Claims.FirstOrDefault(x => x.Type == "userId");
@@ -87,16 +109,17 @@ public class WalletsController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    [Authorize(Roles = "User")]
     public async Task<IActionResult> UpdateWallet(Guid id, [FromBody] WalletDto walletDto)
     {
-        if (!Guid.TryParse(walletDto.Currency.Id, out var currencyId))
+        if (!Guid.TryParse(walletDto.CurrencyId, out var currencyId))
             return BadRequest("CurrencyId invalid");
+        if (!Guid.TryParse(walletDto.WalletTypeId, out var walletTypeId))
+            return BadRequest("WalletTypeId invalid");
 
         var command = new UpdateWalletCommand
         {
             Id = id,
-            WalletType = walletDto.WalletType,
+            WalletTypeId = walletTypeId,
             Amount = walletDto.Amount,
             CurrencyId = currencyId
         };
@@ -107,7 +130,6 @@ public class WalletsController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    [Authorize(Roles = "User")]
     public async Task<IActionResult> DeleteWallet(Guid id)
     {
         var command = new DeleteWalletCommand

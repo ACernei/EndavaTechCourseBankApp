@@ -19,7 +19,9 @@ public class GetWalletsHandler : IRequestHandler<GetWalletsQuery, List<Wallet>>
     public async Task<List<Wallet>> Handle(GetWalletsQuery request, CancellationToken cancellationToken)
     {
         var wallets = await context.Wallets
+            .Include(x => x.User)
             .Include(x => x.Currency)
+            .Include(x => x.WalletType)
             .AsNoTracking()
             .Where(x => x.UserId == request.UserId)
             .ToListAsync(cancellationToken);
