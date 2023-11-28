@@ -258,13 +258,13 @@ namespace Endava.TechCourse.BankApp.Infrastructure.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("bbbdaaad-0454-4016-ab31-7afb5552a482"),
+                            Id = new Guid("cb5367b1-f53d-419d-87c0-95dab53dae90"),
                             Name = "User",
                             NormalizedName = "User"
                         },
                         new
                         {
-                            Id = new Guid("d2dfbdf1-5b60-4a92-a692-d9a5f5354d20"),
+                            Id = new Guid("fa68c3fb-3e6d-41ed-8772-c1c890456b0d"),
                             Name = "Admin",
                             NormalizedName = "Admin"
                         });
@@ -371,6 +371,21 @@ namespace Endava.TechCourse.BankApp.Infrastructure.Migrations
                     b.HasKey("UserId", "LoginProvider", "Name");
 
                     b.ToTable("AspNetUserTokens", (string)null);
+                });
+
+            modelBuilder.Entity("UserWallet", b =>
+                {
+                    b.Property<Guid>("FavoriteWalletsId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("User1Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("FavoriteWalletsId", "User1Id");
+
+                    b.HasIndex("User1Id");
+
+                    b.ToTable("UserWallet");
                 });
 
             modelBuilder.Entity("Endava.TechCourse.BankApp.Domain.Models.Transaction", b =>
@@ -482,6 +497,21 @@ namespace Endava.TechCourse.BankApp.Infrastructure.Migrations
                     b.HasOne("Endava.TechCourse.BankApp.Domain.Models.User", null)
                         .WithMany()
                         .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("UserWallet", b =>
+                {
+                    b.HasOne("Endava.TechCourse.BankApp.Domain.Models.Wallet", null)
+                        .WithMany()
+                        .HasForeignKey("FavoriteWalletsId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Endava.TechCourse.BankApp.Domain.Models.User", null)
+                        .WithMany()
+                        .HasForeignKey("User1Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

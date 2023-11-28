@@ -60,6 +60,9 @@ public class ApplicationDbContext : IdentityDbContext<User, IdentityRole<Guid>, 
             .HasForeignKey<User>(x => x.MainWalletId)
             .IsRequired(false)
             .OnDelete(DeleteBehavior.SetNull);
+        modelBuilder.Entity<User>()
+            .HasMany(e => e.FavoriteWallets)
+            .WithMany();
 
         modelBuilder.Entity<Transaction>()
             .HasOne(t => t.Target)

@@ -1,0 +1,116 @@
+@page "/wallets/favorite-wallets"
+@layout MainLayout
+@inject HttpClient HttpClient
+
+
+<MudGrid>
+    <MudItem md="7">
+        @if (favoriteWallets is null || !favoriteWallets.Any())
+        {
+            <MudAlert Class="pa-4 mt-6" Severity="Severity.Error">Nu exista portofele favorite la moment.</MudAlert>
+        }
+        else
+        {
+            <MudTable Elevation="3" Class="pa-4 mt-6" Items="@favoriteWallets" Height="400px" Hover="true" Dense="true">
+                <HeaderContent>
+                    <MudTh>Cod portofel</MudTh>
+                    <MudTh></MudTh>
+                </HeaderContent>
+                <RowTemplate Context="wallet">
+                    <MudTd DataLabel="@nameof(WalletDto.Code)">@wallet.Code</MudTd>
+                    <MudTd>
+                        @* <MudButton Color="Color.Error" OnClick="@(e => DeleteFavoriteWalletType(favoriteWallets.Id))">Sterge</MudButton> *@
+                    </MudTd>
+                </RowTemplate>
+            </MudTable>
+            <MudItem md="12">
+                @if (error != string.Empty)
+                {
+                    <MudAlert>@error</MudAlert>
+                }
+            </MudItem>
+        }
+    </MudItem>
+
+    <MudItem md="4">
+        <MudGrid>
+            <MudItem md="12" Class="mt-4">
+                <MudText>Portofel favorit :</MudText>
+            </MudItem>
+            <MudItem md="12">
+                <MudPaper Elevation="3" Class="pa-2">
+                    <MudTextField T="string" @bind-Value="newFavoriteWallet.Code" Label="Cod portofel"/>
+                </MudPaper>
+            </MudItem>
+            @* <MudItem md="4"> *@
+            @*     <MudPaper Elevation="3" Class="pa-2"> *@
+            @*         <MudNumericField T="string" @bind-Value="newFavoriteWallet.UserEmail" Label="Email"/> *@
+            @*     </MudPaper> *@
+            @* </MudItem> *@
+            <MudItem md="3">
+                <MudButton Class="mt-4" Variant="Variant.Filled" Color="Color.Primary"
+                           OnClick="async () => await AddFavoriteWallet()">
+                    Adauga
+                </MudButton>
+            </MudItem>
+            <MudItem md="12">
+                @if (error != string.Empty)
+                {
+                    <MudAlert>@error</MudAlert>
+                }
+            </MudItem>
+        </MudGrid>
+    </MudItem>
+</MudGrid>
+
+
+@code {
+    private IEnumerable<WalletDto> favoriteWallets;
+
+    private WalletDto newFavoriteWallet = new();
+    private string error = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetFavoriteWallets();
+        StateHasChanged();
+
+        await base.OnInitializedAsync();
+    }
+
+    private async Task GetFavoriteWallets()
+    {
+        favoriteWallets = await HttpClient.GetFromJsonAsync<List<WalletDto>>("api/favoriteWallets");
+    }
+
+    private async Task DeleteFavoriteWallet(string id)
+    {
+        var result = await HttpClient.DeleteAsync($"api/favoriteWallets/{id}");
+        if (result.IsSuccessStatusCode)
+        {
+            await GetFavoriteWallets();
+            error = string.Empty;
+        }
+        else
+        {
+            error = await result.Content.ReadAsStringAsync();
+        }
+        StateHasChanged();
+    }
+
+    public async Task AddFavoriteWallet()
+    {
+        var result = await HttpClient.PostAsJsonAsync("api/favoriteWallets", newFavoriteWallet);
+        if (result.IsSuccessStatusCode)
+        {
+            await GetFavoriteWallets();
+            newFavoriteWallet = new WalletDto();
+            error = string.Empty;
+        }
+        else
+        {
+            error = await result.Content.ReadAsStringAsync();
+        }
+    }
+
+}

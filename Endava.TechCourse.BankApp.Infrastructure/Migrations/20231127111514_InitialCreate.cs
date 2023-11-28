@@ -240,13 +240,37 @@ namespace Endava.TechCourse.BankApp.Infrastructure.Migrations
                         principalColumn: "Id");
                 });
 
+            migrationBuilder.CreateTable(
+                name: "UserWallet",
+                columns: table => new
+                {
+                    FavoriteWalletsId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    User1Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_UserWallet", x => new { x.FavoriteWalletsId, x.User1Id });
+                    table.ForeignKey(
+                        name: "FK_UserWallet_AspNetUsers_User1Id",
+                        column: x => x.User1Id,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_UserWallet_Wallets_FavoriteWalletsId",
+                        column: x => x.FavoriteWalletsId,
+                        principalTable: "Wallets",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
             migrationBuilder.InsertData(
                 table: "AspNetRoles",
                 columns: new[] { "Id", "ConcurrencyStamp", "Name", "NormalizedName" },
                 values: new object[,]
                 {
-                    { new Guid("bbbdaaad-0454-4016-ab31-7afb5552a482"), null, "User", "User" },
-                    { new Guid("d2dfbdf1-5b60-4a92-a692-d9a5f5354d20"), null, "Admin", "Admin" }
+                    { new Guid("cb5367b1-f53d-419d-87c0-95dab53dae90"), null, "User", "User" },
+                    { new Guid("fa68c3fb-3e6d-41ed-8772-c1c890456b0d"), null, "Admin", "Admin" }
                 });
 
             migrationBuilder.CreateIndex(
@@ -309,6 +333,11 @@ namespace Endava.TechCourse.BankApp.Infrastructure.Migrations
                 name: "IX_Transactions_TargetId",
                 table: "Transactions",
                 column: "TargetId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UserWallet_User1Id",
+                table: "UserWallet",
+                column: "User1Id");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Wallets_CurrencyId",
@@ -382,6 +411,9 @@ namespace Endava.TechCourse.BankApp.Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "Transactions");
+
+            migrationBuilder.DropTable(
+                name: "UserWallet");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");

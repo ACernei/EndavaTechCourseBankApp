@@ -46,9 +46,26 @@
 
             <MudItem md="12">
                 <MudGrid>
-                    <MudItem md="2"/>
+                    <MudItem md="2">
+                        <MudText Typo="Typo.h6">Cautare noua:</MudText>
+                    </MudItem>
                     <MudItem md="4">
                         <MudTextField @bind-Value="newTransaction.TargetSearchTerm"/>
+                    </MudItem>
+                </MudGrid>
+            </MudItem>
+            <MudItem md="12">
+                <MudGrid>
+                    <MudItem md="2">
+                        <MudText Typo="Typo.h6">Selectare din coduri favorite:</MudText>
+                    </MudItem>
+                    <MudItem md="4">
+                        <MudSelect @bind-Value="newTransaction.TargetSearchTerm">
+                            @foreach (var wallet in favoriteWallets)
+                            {
+                                <MudSelectItem Value="wallet.Code">@wallet.Code</MudSelectItem>
+                            }
+                        </MudSelect>
                     </MudItem>
                 </MudGrid>
             </MudItem>
@@ -120,6 +137,7 @@
 @code {
     private IEnumerable<CurrencyDto> currencies;
     private IEnumerable<WalletDto> wallets;
+    private IEnumerable<WalletDto> favoriteWallets;
     private TransactionDto newTransaction = new();
     private string error = string.Empty;
 
@@ -127,15 +145,14 @@
     {
         await GetWallets();
         await GetCurrencies();
-
         StateHasChanged();
-
         await base.OnInitializedAsync();
     }
 
     private async Task GetWallets()
     {
         wallets = await HttpClient.GetFromJsonAsync<List<WalletDto>>("api/wallets");
+        favoriteWallets = await HttpClient.GetFromJsonAsync<List<WalletDto>>("api/favoriteWallets");
     }
 
     private async Task GetCurrencies()
