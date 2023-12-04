@@ -32,3 +32,11 @@ steps:
   inputs:
     platform: '$(buildPlatform)'
     configuration: '$(buildConfiguration)'
+    
+- task: AzureRmWebAppDeployment@4
+  inputs:
+    ConnectionType: 'AzureRM'
+    azureSubscription: 'Azure for Students(3298fa03-f10f-498e-a78d-73b1bf8ca055)'
+    appType: 'webAppLinux'
+    WebAppName: 'bank-app-acernei'
+    packageForLinux: '$(System.DefaultWorkingDirectory)/**/*.zip'
