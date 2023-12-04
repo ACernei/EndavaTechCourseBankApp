@@ -19,15 +19,23 @@ public class UpdateWalletHandler : IRequestHandler<UpdateWalletCommand, CommandS
     {
         var wallet = await context.Wallets
             .FirstOrDefaultAsync(x => x.Id == request.Id, cancellationToken);
-
         if (wallet is null)
             return CommandStatus.Failed("Portofelul nu exista.");
 
-        wallet.WalletType = request.WalletType;
+        var walletType = await context.Wallets
+            .FirstOrDefaultAsync(x => x.Id == request.WalletTypeId, cancellationToken);
+        if (walletType is null)
+            return CommandStatus.Failed("Tip portofel nu exista.");
+
+        var currency = await context.Currencies
+            .FirstOrDefaultAsync(x => x.Id == request.CurrencyId, cancellationToken);
+        if (currency is null)
+            return CommandStatus.Failed("Valuta nu exista.");
+
+        wallet.WalletTypeId = request.WalletTypeId;
         wallet.Amount = request.Amount;
         wallet.CurrencyId = request.CurrencyId;
 
-        context.Wallets.Update(wallet);
         await context.SaveChangesAsync(cancellationToken);
 
         return new CommandStatus();

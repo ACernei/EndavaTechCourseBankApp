@@ -17,13 +17,13 @@
             <MudItem md="12">
                 <MudGrid>
                     <MudItem md="2">
-                        <h3>Portfelul sursa :</h3>
+                        <MudText Typo="Typo.h6">Portfelul sursa:</MudText>
                     </MudItem>
                     <MudItem md="4">
                         <MudSelect Margin="Margin.Dense" T="string" Variant="Variant.Outlined" @bind-Value="newTransaction.SourceId">
                             @foreach (var wallet in wallets)
                             {
-                                <MudSelectItem Value="wallet.Id">@wallet.Id</MudSelectItem>
+                                <MudSelectItem Value="wallet.Id">@wallet.Code</MudSelectItem>
                             }
                         </MudSelect>
                     </MudItem>
@@ -33,13 +33,37 @@
             <MudItem md="12">
                 <MudGrid>
                     <MudItem md="2">
-                        <h3>Portofelul destinatar :</h3>
+                        <MudText Typo="Typo.h6">Selectare destinatar:</MudText>
                     </MudItem>
                     <MudItem md="4">
-                        <MudSelect Margin="Margin.Dense" T="string" Variant="Variant.Outlined" @bind-Value="newTransaction.TargetId">
-                            @foreach (var wallet in wallets)
+                        <MudRadioGroup @bind-SelectedOption="newTransaction.TargetSearchMethod">
+                            <MudRadio Option="TargetSearchMethod.ByWalletCode" Color="Color.Primary" Dense="true">Cod portofel</MudRadio>
+                            <MudRadio Option="TargetSearchMethod.ByEmail" Color="Color.Secondary" Dense="false">Email</MudRadio>
+                        </MudRadioGroup>
+                    </MudItem>
+                </MudGrid>
+            </MudItem>
+
+            <MudItem md="12">
+                <MudGrid>
+                    <MudItem md="2">
+                        <MudText Typo="Typo.h6">Cautare noua:</MudText>
+                    </MudItem>
+                    <MudItem md="4">
+                        <MudTextField @bind-Value="newTransaction.TargetSearchTerm"/>
+                    </MudItem>
+                </MudGrid>
+            </MudItem>
+            <MudItem md="12">
+                <MudGrid>
+                    <MudItem md="2">
+                        <MudText Typo="Typo.h6">Selectare din coduri favorite:</MudText>
+                    </MudItem>
+                    <MudItem md="4">
+                        <MudSelect @bind-Value="newTransaction.TargetSearchTerm">
+                            @foreach (var wallet in favoriteWallets)
                             {
-                                <MudSelectItem Value="wallet.Id">@wallet.Id</MudSelectItem>
+                                <MudSelectItem Value="wallet.Code">@wallet.Code</MudSelectItem>
                             }
                         </MudSelect>
                     </MudItem>
@@ -49,7 +73,7 @@
             <MudItem md="12">
                 <MudGrid>
                     <MudItem md="2">
-                        <h3>Suma :</h3>
+                        <MudText Typo="Typo.h6">Suma:</MudText>
                     </MudItem>
                     <MudItem md="3">
                         <MudNumericField HideSpinButtons="true" @bind-Value="newTransaction.Amount" Variant="Variant.Outlined" Step=".2M"/>
@@ -64,25 +88,46 @@
                     </MudItem>
                 </MudGrid>
             </MudItem>
+
             <MudItem md="12">
                 <MudGrid>
                     <MudItem md="2">
-                        <h3>Descriere :</h3>
+                        <MudText Typo="Typo.h6">Comision:</MudText>
                     </MudItem>
                     <MudItem md="4">
-                        <MudTextField @bind-Value="newTransaction.Description" Variant="Variant.Outlined"/>
-
+                        <MudText Typo="Typo.h6">@($"{GetTransactionFee()} {GetSourceCurrency()}")</MudText>
+                    </MudItem>
+                </MudGrid>
+            </MudItem>
+            <MudItem md="12">
+                <MudGrid>
+                    <MudItem md="2">
+                        <MudText Typo="Typo.h6">Total:</MudText>
+                    </MudItem>
+                    <MudItem md="4">
+                        <MudText Typo="Typo.h6">@($"{GetTransactionTotal()} {GetSourceCurrency()}")</MudText>
                     </MudItem>
                 </MudGrid>
             </MudItem>
 
             <MudItem md="12">
-                <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="@TransferFounds">Transfera</MudButton>
+                <MudGrid>
+                    <MudItem md="2">
+                        <MudText Typo="Typo.h6">Descriere:</MudText>
+                    </MudItem>
+                    <MudItem md="4">
+                        <MudTextField @bind-Value="newTransaction.Description" Variant="Variant.Outlined"/>
+                    </MudItem>
+                </MudGrid>
+            </MudItem>
+
+            <MudItem md="12">
+                <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="@CreateTransaction">Transfera</MudButton>
             </MudItem>
             <MudItem md="12">
-                @if (newTransferError != string.Empty)
+                @if (error != string.Empty)
                 {
-                    <MudAlert>@newTransferError</MudAlert>
+                    <MudAlert>@error</MudAlert>
                 }
             </MudItem>
         }
@@ -92,52 +137,93 @@
 @code {
     private IEnumerable<CurrencyDto> currencies;
     private IEnumerable<WalletDto> wallets;
+    private IEnumerable<WalletDto> favoriteWallets;
     private TransactionDto newTransaction = new();
-    private string newTransferError = string.Empty;
+    private string error = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
         await GetWallets();
         await GetCurrencies();
-
         StateHasChanged();
-
         await base.OnInitializedAsync();
     }
 
-    public async Task GetWallets()
+    private async Task GetWallets()
     {
         wallets = await HttpClient.GetFromJsonAsync<List<WalletDto>>("api/wallets");
+        favoriteWallets = await HttpClient.GetFromJsonAsync<List<WalletDto>>("api/favoriteWallets");
     }
 
-    public async Task GetCurrencies()
+    private async Task GetCurrencies()
     {
         currencies = await HttpClient.GetFromJsonAsync<List<CurrencyDto>>("api/currencies");
     }
 
-    public async Task TransferFounds()
+    private decimal GetTransactionFee()
+    {
+        var wallet = wallets.FirstOrDefault(x => x.Id == newTransaction.SourceId);
+        if (wallet is null)
+            return 0;
+        var walletCurrency = currencies.FirstOrDefault(x => x.Id == wallet?.CurrencyId);
+        if (walletCurrency is null)
+            return 0;
+        var transactionCurrency = currencies.FirstOrDefault(x => x.Id == newTransaction.CurrencyId);
+        if (transactionCurrency is null)
+            return 0;
+        return Math.Round(newTransaction.Amount * transactionCurrency.ChangeRate / walletCurrency.ChangeRate * wallet.TransactionFee / 100, 2);
+    }
+
+    private decimal GetTransactionTotal()
+    {
+        var wallet = wallets.FirstOrDefault(x => x.Id == newTransaction.SourceId);
+        if (wallet is null)
+            return 0;
+        var walletCurrency = currencies.FirstOrDefault(x => x.Id == wallet?.CurrencyId);
+        if (walletCurrency is null)
+            return 0;
+        var transactionCurrency = currencies.FirstOrDefault(x => x.Id == newTransaction.CurrencyId);
+        if (transactionCurrency is null)
+            return 0;
+        return Math.Round(newTransaction.Amount * transactionCurrency.ChangeRate / walletCurrency.ChangeRate + GetTransactionFee(), 2);
+    }
+
+    private string GetSourceCurrency()
+    {
+        var wallet = wallets.FirstOrDefault(x => x.Id == newTransaction.SourceId);
+        return currencies.FirstOrDefault(x => x.Id == wallet?.CurrencyId)?.Code;
+    }
+
+    private async Task CreateTransaction()
     {
         if (string.IsNullOrEmpty(newTransaction.SourceId))
-            newTransferError = "Pentru a efectua o tranzactie trebuie sa alegeti un portofel sursa.";
-        else if (string.IsNullOrEmpty(newTransaction.TargetId))
-            newTransferError = "Pentru a efectua o tranzactie trebuie sa alegeti un portofel destinatie.";
-        else if (newTransaction.Amount <= 0)
-            newTransferError = "Suma transferului trebuie sa fie mai mare ca 0";
-        else
         {
-            newTransaction.TransactionType = "P2P";
-            var result = await HttpClient.PostAsJsonAsync("api/transactions", newTransaction);
-
-            if (result.IsSuccessStatusCode)
-            {
-                await GetWallets();
-                newTransaction = new TransactionDto();
-                newTransferError = string.Empty;
-            }
-            else
-                newTransferError = await result.Content.ReadAsStringAsync();
+            error = "Pentru a efectua o tranzactie trebuie sa alegeti un portofel sursa.";
+            return;
+        }
+        if (newTransaction.TargetSearchMethod == TargetSearchMethod.None
+            || string.IsNullOrEmpty(newTransaction.TargetSearchTerm))
+        {
+            error = "Pentru a efectua o tranzactie trebuie sa alegeti un destinatar.";
+            return;
+        }
+        if (newTransaction.Amount <= 0)
+        {
+            error = "Suma transferului trebuie sa fie mai mare ca 0";
+            return;
         }
 
+        newTransaction.TransactionType = "P2P";
+        var result = await HttpClient.PostAsJsonAsync("api/transactions", newTransaction);
+
+        if (result.IsSuccessStatusCode)
+        {
+            await GetWallets();
+            newTransaction = new TransactionDto();
+            error = string.Empty;
+        }
+        else
+            error = await result.Content.ReadAsStringAsync();
         StateHasChanged();
     }
 

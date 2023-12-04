@@ -13,6 +13,7 @@ public class ApplicationDbContext : IdentityDbContext<User, IdentityRole<Guid>, 
     }
 
     public DbSet<Wallet> Wallets { get; set; }
+    public DbSet<WalletType> WalletTypes { get; set; }
     public DbSet<Currency> Currencies { get; set; }
     public DbSet<Transaction> Transactions { get; set; }
 
@@ -20,6 +21,8 @@ public class ApplicationDbContext : IdentityDbContext<User, IdentityRole<Guid>, 
     {
         modelBuilder.Entity<Wallet>()
             .HasKey(x => x.Id);
+        modelBuilder.Entity<WalletType>()
+            .HasKey(x => x.Id);
         modelBuilder.Entity<Currency>()
             .HasKey(x => x.Id);
         modelBuilder.Entity<Transaction>()
@@ -27,16 +30,39 @@ public class ApplicationDbContext : IdentityDbContext<User, IdentityRole<Guid>, 
 
         modelBuilder.Entity<Wallet>()
             .Property(e => e.TimeStamp);
+        modelBuilder.Entity<WalletType>()
+            .Property(e => e.TimeStamp);
         modelBuilder.Entity<Currency>()
             .Property(e => e.TimeStamp);
         modelBuilder.Entity<Transaction>()
             .Property(e => e.TimeStamp);
+
+        modelBuilder.Entity<WalletType>()
+            .HasMany(e => e.Wallets)
+            .WithOne(e => e.WalletType)
+            .HasForeignKey(e => e.WalletTypeId)
+            .IsRequired();
 
         modelBuilder.Entity<Currency>()
             .HasMany(e => e.Wallets)
             .WithOne(e => e.Currency)
             .HasForeignKey(e => e.CurrencyId)
             .IsRequired();
+
+        modelBuilder.Entity<User>()
+            .HasMany(e => e.Wallets)
+            .WithOne(e => e.User)
+            .HasForeignKey(e => e.UserId)
+            .IsRequired(false);
+        modelBuilder.Entity<User>()
+            .HasOne(e => e.MainWallet)
+            .WithOne()
+            .HasForeignKey<User>(x => x.MainWalletId)
+            .IsRequired(false)
+            .OnDelete(DeleteBehavior.SetNull);
+        modelBuilder.Entity<User>()
+            .HasMany(e => e.FavoriteWallets)
+            .WithMany();
 
         modelBuilder.Entity<Transaction>()
             .HasOne(t => t.Target)

@@ -1,4 +1,4 @@
-@page "/wallets"
+@page "/wallets/new-wallet"
 @layout MainLayout
 @inject HttpClient HttpClient
 
@@ -22,15 +22,23 @@
                 <MudCard>
                     <MudCardHeader>
                         <CardHeaderContent>
-                            <MudText Typo="Typo.h6">Portofel Digital</MudText>
+                            <MudText Typo="Typo.h6">@walletTypes.FirstOrDefault(x => x.Id == wallet.WalletTypeId)?.Name</MudText>
                         </CardHeaderContent>
                         <CardHeaderActions>
-                            <MudIconButton Icon="@Icons.Material.Filled.Bookmark" Color="Color.Default"/>
+                            @if (wallet.IsMain)
+                            {
+                                <MudIconButton Color="Color.Success" Icon="@Icons.Material.Filled.Bookmark"/>
+                            }
+                            else
+                            {
+                                <MudIconButton Color="Color.Default" Icon="@Icons.Material.Filled.BookmarkBorder"
+                                               OnClick="async () => await SetMainWallet(wallet)"/>
+                            }
                         </CardHeaderActions>
                     </MudCardHeader>
                     <MudCardContent>
                         <MudText>Balanta contului : @wallet.Amount</MudText>
-                        <MudText>Valuta - @wallet.Currency.Code</MudText>
+                        <MudText>Valuta - @currencies.FirstOrDefault(x => x.Id == wallet.CurrencyId)?.Code</MudText>
                     </MudCardContent>
                 </MudCard>
             </MudItem>
@@ -45,33 +53,31 @@
     }
     else
     {
-        <MudItem md="12" Class="d-flex align-center">
-            <MudText GutterBottom="true">Indica tipul :</MudText>
-        </MudItem>
         <MudItem md="2">
-            <MudTextField @bind-Value="newWallet.WalletType" Label="Type" Required="true"/>
-        </MudItem>
-        <MudItem md="12" Class="d-flex align-center">
-            <MudText GutterBottom="true">Indica suma :</MudText>
-        </MudItem>
-        <MudItem md="2">
-            <MudTextField @bind-Value="newWallet.Amount" Label="Amount" Required="true"/>
-        </MudItem>
-        <MudItem md="12" Class="d-flex align-center">
-            <MudText GutterBottom="true">Alege valuta :</MudText>
-        </MudItem>
-        <MudItem md="2">
-            <MudSelect T="CurrencyDto" @bind-Value="newWallet.Currency" Label="Valuta" Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter">
-                @foreach (var currency in currencies)
+            <MudSelect T="string" @bind-Value="newWallet.WalletTypeId" Label="Tip" Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter">
+                @foreach (var walletType in walletTypes)
                 {
-                    <MudSelectItem T="CurrencyDto" Value="currency"/>
+                    <MudSelectItem T="string" Value="walletType.Id">@walletType.Name</MudSelectItem>
                 }
             </MudSelect>
         </MudItem>
+
         <MudItem md="2">
+            <MudNumericField @bind-Value="newWallet.Amount" Label="Suma" Required="true"/>
+        </MudItem>
+
+        <MudItem md="2">
+            <MudSelect T="string" @bind-Value="newWallet.CurrencyId" Label="Valuta" Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter">
+                @foreach (var currency in currencies)
+                {
+                    <MudSelectItem T="string" Value="currency.Id">@currency.Code</MudSelectItem>
+                }
+            </MudSelect>
+        </MudItem>
+        <MudItem md="1">
             <MudButton Class="mt-4" Variant="Variant.Filled" Color="Color.Primary" OnClick="@AddWallet">Adauga</MudButton>
         </MudItem>
-        <MudItem md="12">
+        <MudItem md="2">
             @if (newWalletError != string.Empty)
             {
                 <MudAlert>@newWalletError</MudAlert>
@@ -83,6 +89,8 @@
 
 @code {
     private IEnumerable<WalletDto> wallets;
+    private IEnumerable<WalletTypeDto> walletTypes;
+
     private IEnumerable<CurrencyDto> currencies;
     private WalletDto newWallet = new();
     private string newWalletError = string.Empty;
@@ -91,6 +99,8 @@
     {
         await GetWallets();
         await GetCurrencies();
+        await GetWalletTypes();
+
         StateHasChanged();
 
         await base.OnInitializedAsync();
@@ -106,10 +116,14 @@
         currencies = await HttpClient.GetFromJsonAsync<List<CurrencyDto>>("api/currencies");
     }
 
+    public async Task GetWalletTypes()
+    {
+        walletTypes = await HttpClient.GetFromJsonAsync<List<WalletTypeDto>>("api/walletTypes");
+    }
 
     public async Task AddWallet()
     {
-        if (string.IsNullOrEmpty(newWallet.Currency.Code))
+        if (string.IsNullOrEmpty(newWallet.CurrencyId))
             newWalletError += "Un portofel nu poate fi creat fara a alege o valuta.";
         else
         {
@@ -128,6 +142,13 @@
         }
 
         StateHasChanged();
+    }
+
+    public async Task SetMainWallet(WalletDto wallet)
+    {
+        var result = await HttpClient.PostAsync($"api/wallets/setMainWallet/{wallet.Id}", null);
+        if (result.IsSuccessStatusCode)
+            await GetWallets();
     }
 
 }

@@ -3,7 +3,6 @@
 @inject HttpClient HttpClient
 
 <AuthorizeView Roles="Admin">
-
     <MudGrid>
         <MudItem md="7">
             @if (currencies is null || !currencies.Any())
@@ -12,36 +11,49 @@
             }
             else
             {
-                <MudTable Elevation="3" Class="pa-4 mt-6" Items="@currencies" Height="400px">
+                <MudTable Elevation="3" Class="pa-4 mt-6" Items="@currencies" Height="400px"
+                          Hover="true" Dense="true" CanCancelEdit="true" IsEditRowSwitchingBlocked="true"
+                          EditTrigger="TableEditTrigger.EditButton"
+                          ApplyButtonPosition="TableApplyButtonPosition.Start" EditButtonPosition="TableEditButtonPosition.Start"
+                          RowEditPreview="BackupItem" RowEditCancel="ResetItemToOriginalValues"
+                          RowEditCommit="UpdateCurrency">
                     <HeaderContent>
                         <MudTh>Denumirea</MudTh>
                         <MudTh>Codul</MudTh>
                         <MudTh>Rata de schimb</MudTh>
                         <MudTh></MudTh>
                     </HeaderContent>
-                    <ColGroup>
-                        <col style="width: 50%;"/>
-                        <col/>
-                        <col/>
-                        <col/>
-                    </ColGroup>
-                    <RowTemplate Context="tableRow">
-                        <MudTd DataLabel="Nr">@tableRow.Name</MudTd>
-                        <MudTd DataLabel="Nr">@tableRow.Code</MudTd>
-                        <MudTd DataLabel="Nr">@tableRow.ChangeRate</MudTd>
-
-                        <MudTd DataLabel="Nr">
-                            @if (tableRow.CanBeRemoved)
+                    <RowTemplate Context="currency">
+                        <MudTd DataLabel="@nameof(CurrencyDto.Name)">@currency.Name</MudTd>
+                        <MudTd DataLabel="@nameof(CurrencyDto.Code)">@currency.Code</MudTd>
+                        <MudTd DataLabel="@nameof(CurrencyDto.ChangeRate)">@currency.ChangeRate</MudTd>
+                        <MudTd>
+                            @if (currency.CanBeRemoved)
                             {
-                                <MudButton Color="Color.Error" OnClick="@(e => DeleteCurrency(tableRow.Id))">Sterge</MudButton>
+                                <MudButton Color="Color.Error" OnClick="@(e => DeleteCurrency(currency.Id))">Sterge</MudButton>
                             }
                         </MudTd>
                     </RowTemplate>
+
+                    <RowEditingTemplate Context="currency">
+                        <MudTd DataLabel="@nameof(CurrencyDto.Name)">
+                            <MudTextField @bind-Value="@currency.Name" Required/>
+                        </MudTd>
+                        <MudTd DataLabel="@nameof(CurrencyDto.Code)">
+                            <MudTextField @bind-Value="@currency.Code" Required/>
+                        </MudTd>
+                        <MudTd DataLabel="@nameof(CurrencyDto.ChangeRate)">
+                            <MudNumericField @bind-Value="@currency.ChangeRate" Required/>
+                        </MudTd>
+                    </RowEditingTemplate>
+                    <EditButtonContent Context="button">
+                        <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.Edit" Class="pa-0" OnClick="@button.ButtonAction" Disabled="@button.ButtonDisabled"/>
+                    </EditButtonContent>
                 </MudTable>
                 <MudItem md="12">
-                    @if (newCurrencyError != string.Empty)
+                    @if (error != string.Empty)
                     {
-                        <MudAlert>@newCurrencyError</MudAlert>
+                        <MudAlert>@error</MudAlert>
                     }
                 </MudItem>
             }
@@ -52,7 +64,6 @@
                 <MudItem md="12" Class="mt-4">
                     <MudText>Valuta noua : </MudText>
                 </MudItem>
-
                 <MudItem md="12">
                     <MudPaper Elevation="3" Class="pa-2">
                         <MudTextField T="string" @bind-Value="newCurrency.Name" Label="Denumirea valutei"/>
@@ -72,9 +83,9 @@
                     <MudButton Class="mt-4" Variant="Variant.Filled" Color="Color.Primary" OnClick="AddCurrency">Adauga</MudButton>
                 </MudItem>
                 <MudItem md="12">
-                    @if (newCurrencyError != string.Empty)
+                    @if (error != string.Empty)
                     {
-                        <MudAlert>@newCurrencyError</MudAlert>
+                        <MudAlert>@error</MudAlert>
                     }
                 </MudItem>
             </MudGrid>
@@ -85,8 +96,8 @@
 @code {
     private IEnumerable<CurrencyDto> currencies;
     private CurrencyDto newCurrency = new();
-    private string newCurrencyError = string.Empty;
-    private string deleteCurrencyError = string.Empty;
+    private CurrencyDto currencyBeforeEdit;
+    private string error = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
@@ -96,49 +107,94 @@
         await base.OnInitializedAsync();
     }
 
-    public async Task GetCurrencies()
+    private async Task GetCurrencies()
     {
         currencies = await HttpClient.GetFromJsonAsync<List<CurrencyDto>>("api/currencies");
     }
 
-
-    public async Task AddCurrency()
+    private async Task AddCurrency()
     {
         if (string.IsNullOrEmpty(newCurrency.Name))
-            newCurrencyError = "Numele valutei nu poate fi gol";
-        else if (string.IsNullOrEmpty(newCurrency.Code))
-            newCurrencyError = "Codul valutei nu poate fi gol";
-        else if (newCurrency.ChangeRate <= 0)
-            newCurrencyError = "Rata de schimb nu poate fi 0 sau mai mica";
-        else
         {
-            var result = await HttpClient.PostAsJsonAsync("api/currencies", newCurrency);
-
-            if (!result.IsSuccessStatusCode)
-                newCurrencyError = await result.Content.ReadAsStringAsync();
-            else
-            {
-                await GetCurrencies();
-                newCurrencyError = string.Empty;
-                newCurrency = new CurrencyDto();
-            }
+            error = "Numele valutei nu poate fi gol";
+            return;
+        }
+        if (string.IsNullOrEmpty(newCurrency.Code))
+        {
+            error = "Codul valutei nu poate fi gol";
+            return;
+        }
+        if (newCurrency.ChangeRate <= 0)
+        {
+            error = "Rata de schimb nu poate fi 0 sau mai mica";
+            return;
         }
 
-        StateHasChanged();
-    }
-
-    public async Task DeleteCurrency(string id)
-    {
-        var result = await HttpClient.DeleteAsync($"api/currencies/{id}");
-
+        var result = await HttpClient.PostAsJsonAsync("api/currencies", newCurrency);
         if (result.IsSuccessStatusCode)
         {
             await GetCurrencies();
-            deleteCurrencyError = string.Empty;
+            error = string.Empty;
+            newCurrency = new CurrencyDto();
         }
         else
-            deleteCurrencyError = await result.Content.ReadAsStringAsync();
+        {
+            error = await result.Content.ReadAsStringAsync();
+        }
+        StateHasChanged();
+    }
 
+    private async void UpdateCurrency(object element)
+    {
+        var currency = (CurrencyDto)element;
+        var result = await HttpClient.PutAsJsonAsync($"api/currencies/{currency.Id}", currency);
+        if (result.IsSuccessStatusCode)
+        {
+            await GetCurrencies();
+            error = string.Empty;
+        }
+        else
+        {
+            error = await result.Content.ReadAsStringAsync();
+        }
+        StateHasChanged();
+    }
+
+    private async Task DeleteCurrency(string id)
+    {
+        var result = await HttpClient.DeleteAsync($"api/currencies/{id}");
+        if (result.IsSuccessStatusCode)
+        {
+            await GetCurrencies();
+            error = string.Empty;
+        }
+        else
+        {
+            error = await result.Content.ReadAsStringAsync();
+        }
+        StateHasChanged();
+    }
+
+    private void ResetItemToOriginalValues(object element)
+    {
+        var currency = (CurrencyDto)element;
+        currency.Id = currencyBeforeEdit.Id;
+        currency.Name = currencyBeforeEdit.Name;
+        currency.Code = currencyBeforeEdit.Code;
+        currency.ChangeRate = currencyBeforeEdit.ChangeRate;
+        StateHasChanged();
+    }
+
+    private void BackupItem(object element)
+    {
+        var currency = (CurrencyDto)element;
+        currencyBeforeEdit = new CurrencyDto
+        {
+            Id = currency.Id,
+            Name = currency.Name,
+            Code = currency.Code,
+            ChangeRate = currency.ChangeRate
+        };
         StateHasChanged();
     }
 

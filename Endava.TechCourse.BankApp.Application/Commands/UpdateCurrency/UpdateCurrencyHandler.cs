@@ -33,7 +33,6 @@ public class UpdateCurrencyHandler : IRequestHandler<UpdateCurrencyCommand, Comm
         currency.Code = request.Code;
         currency.ChangeRate = request.ChangeRate;
 
-        context.Currencies.Update(currency);
         await context.SaveChangesAsync(cancellationToken);
 
         return new CommandStatus();
